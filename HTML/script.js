@@ -30,7 +30,7 @@ const RESULT = { prediction: {},      //{label:score}
 
 deepcopy = function(x){return JSON.parse(JSON.stringify(x))};
 
-
+//updates the ui accordion table
 function update_inputfiles_list(){
   $filestable = $('#filetable');
   $filestable.find('tbody').html('');
@@ -40,25 +40,29 @@ function update_inputfiles_list(){
   }
 }
 
+//removes all ui items from the low-confidence section
 function reset_lowconfidence_section(){
   $('#lowconfidence').find('.content').html('');
   $('#lowconfidence.accordion').accordion('close',0);
   update_number_of_lowconfidence_predictions();
 }
 
+
+//replaces the old global.input_files with a new list of files, updates ui
 function set_input_files(files){
   global.input_files = {};
-  //global.per_file_results = {};
   for(f of files)
     global.input_files[f.name] = Object.assign({}, deepcopy(FILE), {name: f.name, file: f});
   update_inputfiles_list();
   reset_lowconfidence_section()
 }
 
+//called when user selects input file(s)
 function on_inputfiles_select(input){
   set_input_files(input.target.files);
 }
 
+//called when user selects an input folder
 function on_inputfolder_select(input){
   files = [];
   for(f of input.files)
@@ -68,6 +72,8 @@ function on_inputfolder_select(input){
 }
 
 
+//transfers an input image to the flask server
+//creates the ui items in the correspondin accordion item (if not done yet)
 function upload_file(file){
   var formData = new FormData();
   formData.append('files', file );
@@ -175,8 +181,8 @@ function update_number_of_lowconfidence_predictions(){
 }
 
 
+//refresh the ui table for one file
 function update_per_file_results(filename){
-  //refresh the gui for one file
   results = global.input_files[filename].results;
 
   //display only the labels marked as selected in the main table
@@ -185,8 +191,9 @@ function update_per_file_results(filename){
 
 }
 
+
+//remove prediction from global data and update ui
 function remove_prediction(filename, index){
-  //remove prediction from global data
   delete global.input_files[filename].results[index];
   //remove all result-details boxes (one in the filelist and maybe one in low-confidence list)
   $(`.result-details[filename="${filename}"][index="${index}"]`).detach();
@@ -241,6 +248,7 @@ function on_accept_prediction(e){
   update_number_of_lowconfidence_predictions();
 }
 
+//callback, scrolls down to the row in the table that contains the file name and opens the accordion item
 function on_goto_image(e){
   //this callback from "go to full image" button from the lowconf section
   $resultdetailbox = $(e.target).closest('.result-details')
@@ -270,6 +278,7 @@ function on_custom_label_input(e){
   update_per_file_results(filename, true);
 }
 
+//adds a result-details-box to the low confidence section
 function add_to_lowconfidence(filename, result, i){
   $resultdetailsbox = build_result_details(filename, result, i);
   $resultdetailsbox.appendTo($('#lowconfidence').find('.content'));
@@ -278,6 +287,7 @@ function add_to_lowconfidence(filename, result, i){
   update_number_of_lowconfidence_predictions();
 }
 
+//new prediction, either automatically detected or manually added
 function add_new_prediction(filename, prediction, box, flag, i){
   //sort labels by probability
   prediction = sortObjectByValue(prediction);
@@ -299,7 +309,7 @@ function add_new_prediction(filename, prediction, box, flag, i){
 
 
 
-
+//sends an image to flask and initiates automatic prediction
 function process_file(filename){
   upload_file(global.input_files[filename].file);
   //send a processing request to python update gui with the results
@@ -319,11 +329,13 @@ function process_file(filename){
     });
 }
 
+//sends command to flask to delete an image from the temporary folder (images can be large)
 function delete_image(filename){
   $.get(`/delete_image/${filename}`);
 }
 
-
+//called when user clicks on a table row to open the accordion item
+//uploads image to flask, creates accordion ui item
 function on_accordion_open(x){
   target     = this;
   contentdiv = this.find('.content');
@@ -332,16 +344,15 @@ function on_accordion_open(x){
   filename   = contentdiv.attr('filename');
   file       = global.input_files[filename].file;
   upload_file(file);
-
-  //document.getElementById(`image_${filename}`).onload = function(){magnify(`image_${filename}`)};
 }
 
-
+//called when user clicks on the "process" button of a single image
 function on_process_image(e){
   filename = e.target.attributes['filename'].value;
   process_file(filename);
 }
 
+//called when user clicks on the "process all" button
 function process_all(){
   $button = $('#process-all-button')
 
@@ -366,6 +377,7 @@ function process_all(){
   setTimeout(loop_body, 1);  //using timeout to refresh the html between iterations
 }
 
+//called when user clicks on "cancel processing" button
 function cancel_processing(){
   global.cancel_requested = true;
 }
@@ -376,7 +388,7 @@ function cancel_processing(){
 
 
 
-
+//obsolete, replaced with drawing boxes; TODO: remove
 function on_image_click(e){
   //add custom prediction
   filename = $(e.target).closest('[filename]').attr('filename');
@@ -392,13 +404,14 @@ function on_image_click(e){
   });
 }
 
-
+//duplicate with boxes.js; TODO: remove this
 function add_box_overlay(filename, box, index){
     var $overlay = $("#box-overlay-template").tmpl( [ {box:box, index:index} ] );
     $parent      = $(`div[filename="${filename}"]`).find('.dimmable');
     $parent.append($overlay);    
 }
 
+//duplicate with boxes.js; TODO: remove this
 function remove_box_overlay(filename, index){
     $overlay = $(`div[filename="${filename}"]`).find(`.box-overlay[index="${index}"]`);
     $overlay.remove();
