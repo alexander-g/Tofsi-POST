@@ -326,6 +326,9 @@ function process_file(filename){
 
       global.input_files[filename].imagesize=data.imagesize;
       global.input_files[filename].processed=true;
+      
+      //make the filename bold to indicate that the file has been processed
+      $(`.ui.title[filename="${filename}"]`).find('label').wrap($('<b>'));
       delete_image(filename);
     });
 }
