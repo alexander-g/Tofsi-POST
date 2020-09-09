@@ -16,6 +16,7 @@ const RESULT = { prediction: {},      //{label:score}
                  custom:     '',
                  selected:    0,      //index of the selected label in prediction, if -1 then custom
                  box:         [0,0,1,1],
+                 loconf:      false   //whether or not the prediction is considered low confidence
 };
 
 
@@ -166,10 +167,10 @@ function get_list_of_dropdown_label_suggestions(){
 
 
 function update_number_of_lowconfidence_predictions(){
-  n = 0
+  var n = 0
   for(file of Object.values(global.input_files))
     for(result of Object.values(file.results))
-      n+=Object.values(result.prediction).length>1
+      n+=result.loconf;
 
   $('#lowconfidence').find('.title').find('label').text(`${n} Low Confidence Predictions`)
 }
@@ -282,7 +283,7 @@ function add_new_prediction(filename, prediction, box, flag, i){
   //sort labels by probability
   prediction = sortObjectByValue(prediction);
   selection  = Object.keys(prediction).length>0? 0 : -1;
-  result     = {prediction:prediction, custom:'', selected:selection, box:box};
+  result     = {prediction:prediction, custom:'', selected:selection, box:box, loconf:flag};
   global.input_files[filename].results[i] =  result;
 
   //update file list table

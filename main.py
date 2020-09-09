@@ -18,6 +18,7 @@ import skimage.transform as sktransform
 import skimage.measure as skmeasure
 import skimage.morphology as skmorph
 import skimage.filters as skfilter
+import skimage.util    as skimgutil
 import sklearn.svm as sksvm
 import sklearn.model_selection as skms
 import sklearn.utils as skutils
