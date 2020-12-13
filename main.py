@@ -125,4 +125,7 @@ if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not is_debug:  #to avoid fla
         	print('Flask started')
         	webbrowser.open('http://localhost:5000', new=2)
 
-app.run(host='127.0.0.1',port=5000, debug=is_debug)
+#ugly ugly
+host = ([x[x.index('=')+1:] for x in sys.argv if x.startswith('--host=')] + ['127.0.0.1'])[0]
+print(f'Host: {host}')
+app.run(host=host,port=5000, debug=is_debug)

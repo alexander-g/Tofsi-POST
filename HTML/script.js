@@ -2,6 +2,8 @@
 global = {
   input_files : {},      //{"banana.JPG": FILE}  //FILE see below
   cancel_requested : false,
+
+  KNOWN_POLLENSPECIES : ['Alnus', 'Betula', 'Corylus', 'Lycopodium', 'Fagus', 'Pinus', 'Secale'],
 };
 
 
@@ -149,7 +151,7 @@ function get_selected_label(x){
   return (x.selected>=0)? Object.keys(x.prediction)[x.selected] : x.custom;
 }
 
-//returns all selected labels for a file, filtering ''/nonbats
+//returns all selected labels for a file, filtering ''/nonpollen
 function get_selected_labels(filename){
   results = global.input_files[filename].results;
   selectedlabels = Object.values(results).map(get_selected_label);
@@ -392,34 +394,6 @@ function cancel_processing(){
 
 
 
-//obsolete, replaced with drawing boxes; TODO: remove
-function on_image_click(e){
-  //add custom prediction
-  filename = $(e.target).closest('[filename]').attr('filename');
-  upload_file(global.input_files[filename].file);
-  x = Math.round( e.offsetX/e.target.getBoundingClientRect().width*100  )/100;
-  y = Math.round( e.offsetY/e.target.getBoundingClientRect().height*100 )/100;
-  i = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
-  $.get(`/custom_patch/${filename}?x=${x}&y=${y}&index=${i}`).done(function(){
-    console.log('Custom_patch done', i);
-    add_new_prediction(filename, {}, [y-0.05, x-0.05, y+0.05, x+0.05], false, i);
-    update_per_file_results(filename);
-    delete_image(filename);
-  });
-}
-
-//duplicate with boxes.js; TODO: remove this
-function add_box_overlay(filename, box, index){
-    var $overlay = $("#box-overlay-template").tmpl( [ {box:box, index:index} ] );
-    $parent      = $(`div[filename="${filename}"]`).find('.dimmable');
-    $parent.append($overlay);    
-}
-
-//duplicate with boxes.js; TODO: remove this
-function remove_box_overlay(filename, index){
-    $overlay = $(`div[filename="${filename}"]`).find(`.box-overlay[index="${index}"]`);
-    $overlay.remove();
-}
 
 //adds a callback to a result-details-box to highlight the corresponding box overlays on mouse hover
 function add_box_overlay_highlight_callback($resultdetailsbox){

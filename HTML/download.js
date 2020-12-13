@@ -21,6 +21,35 @@ function on_download_csv(){
 }
 
 
+//file format requested by nia
+function on_download_csv(){
+    function format_resultrow(result, filename, i){
+        var row = `${filename}-${i},`;
+        for(var pollenspecies of global.KNOWN_POLLENSPECIES.concat(['Other'])){
+            var confidence = result.prediction[pollenspecies];
+            row += confidence? (confidence*100).toFixed(0)+'%' : "   ";
+            row += ",";
+        }
+        var selectedlabel = get_selected_label(result);
+        selectedlabel = selectedlabel? selectedlabel : "Nonpollen";
+        row += selectedlabel += ';\n';
+        return row;
+    }
+
+    var csvtext = '';
+    csvtext += "Filename," + global.KNOWN_POLLENSPECIES.join(',') + ",Other,Final;\n"
+    for(var filename of Object.keys(global.input_files)){
+        var results = Object.values(global.input_files[filename].results);
+        for(var i in results){
+            csvtext += format_resultrow(results[i], filename, i);
+        }
+    }
+
+    if(!!csvtext)
+      download('detected_pollen.csv', csvtext)
+    return csvtext;
+}
+
 
 
 const labelme_template = {
