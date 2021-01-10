@@ -3,25 +3,24 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 import glob
-import dill
+import cloudpickle
 import numpy as np
 import itertools
 import util
 
-import tensorflow as tf
-import tensorflow.keras as keras
-K = keras.backend
-print('TensorFlow version: %s'%tf.__version__)
-print('Keras version: %s'%keras.__version__)
+import torch, torchvision
+print('PyTorch version: %s'%torch.__version__)
+print('Torchvision version: %s'%torchvision.__version__)
 
 import skimage.measure as skmeasure
 import skimage.morphology as skmorph
+import PIL
 
 detector = None
 
 def init():
     global detector
-    detector = dill.load(open('models/pollendetector.dill', 'rb'))
+    detector = cloudpickle.load(open('models/pollendetector.cpkl', 'rb'))
     #load_settings()
 
 def load_image(path):
@@ -37,15 +36,12 @@ def extract_patch(image, box):
     return detector.extract_patch(image, box)
 
 
-def write_as_png(path,x):
-    x = x[...,tf.newaxis] if len(x.shape)==2 else x
-    x = x*255 if tf.reduce_max(x)<=1 else x
-    tf.io.write_file(path, tf.image.encode_png(  tf.cast(x, tf.uint8)  ))
 
 def write_as_jpeg(path,x):
     if len(x.shape)==2:
-        x = x[...,tf.newaxis]
+        x = x[...,np.newaxis]
     elif len(x.shape)==4:
         x = detector.resize_image_for_detection(x)
-    x = x*255 if tf.reduce_max(x)<=1 else x
-    tf.io.write_file(path, tf.image.encode_jpeg(  tf.cast(x, tf.uint8)  ))
+    x = (x*255).astype(np.uint8)
+    x = PIL.Image.fromarray(x).convert('RGB')
+    x.save(path)

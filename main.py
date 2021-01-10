@@ -1,34 +1,31 @@
 import webbrowser, os, tempfile, io, sys
+os.environ['PYTORCH_JIT']='0' #needed for packaging
+
 import flask
 from flask import Flask, escape, request
 import json
 
 import processing
 
-#need to import all the packages here in the main file because of dill-ed ipython model
-import tensorflow as tf
-import tensorflow.keras as keras
+import torch, torchvision
 
 import numpy as np
-arange = np.arange
-import skimage.io as skio
+import skimage.io         as skio
 skio.use_plugin('tifffile')
-import skimage.draw as skdraw
-import skimage.transform as sktransform
-import skimage.measure as skmeasure
+import skimage.draw       as skdraw
+import skimage.transform  as sktransform
+import skimage.measure    as skmeasure
 import skimage.morphology as skmorph
-import skimage.filters as skfilter
-import skimage.util    as skimgutil
-import sklearn.svm as sksvm
-import sklearn.model_selection as skms
-import sklearn.utils as skutils
+import skimage.filters    as skfilters
+import skimage.util       as skimgutil
+#import sklearn.utils      as skutils
 
-import util
 import tempfile
+#import util
 #monkeypatching
-util.tempfile = tempfile
-util.os       = os
-util.keras    = keras
+#util.tempfile = tempfile
+#util.os       = os
+#util.keras    = keras
 
 
 
@@ -72,9 +69,8 @@ def process_image(imgname):
     image        = processing.load_image(fullpath)
     result       = processing.process_image(image)
 
-    #processing.write_as_png(os.path.join(TEMPFOLDER.name, 'segmented_'+imgname), result.detectionmap)
     for i,patch in enumerate(result.patches):
-        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s'%(i,imgname)), patch)
+        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(i,imgname)), patch)
     print(result.labels)
     return flask.jsonify({'labels':result.labels, 'flags':result.flags, 
                           'boxes':np.array(result.boxes).tolist(), 'imagesize':image.shape })
@@ -98,7 +94,7 @@ def custom_patch(imgname):
     image    = processing.load_image(fullpath)
     patch    = processing.extract_patch(image, box)
     if patch is not None:
-        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s'%(index,imgname)), patch)
+        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(index,imgname)), patch)
         return 'OK'
 
 

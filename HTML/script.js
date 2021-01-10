@@ -153,14 +153,14 @@ function get_selected_label(x){
 
 //returns all selected labels for a file, filtering ''/nonpollen
 function get_selected_labels(filename){
-  results = global.input_files[filename].results;
-  selectedlabels = Object.values(results).map(get_selected_label);
-  selectedlabels = selectedlabels.filter(Boolean);
+  var results = global.input_files[filename].results;
+  var selectedlabels = Object.values(results).map(get_selected_label);
+  var selectedlabels = selectedlabels.filter(Boolean);
   return selectedlabels;
 }
 
 function get_set_of_all_selected_labels(){
-  all_labels = [];
+  var all_labels = [];
   for(f in global.input_files)
     all_labels.push(...get_selected_labels(f));
   return new Set(all_labels);
@@ -176,8 +176,8 @@ function get_list_of_dropdown_label_suggestions(){
 
 function update_number_of_lowconfidence_predictions(){
   var n = 0
-  for(file of Object.values(global.input_files))
-    for(result of Object.values(file.results))
+  for(var file of Object.values(global.input_files))
+    for(var result of Object.values(file.results))
       n+=result.loconf;
 
   $('#lowconfidence').find('.title').find('label').text(`${n} Low Confidence Predictions`)
@@ -186,10 +186,24 @@ function update_number_of_lowconfidence_predictions(){
 
 //refresh the ui table for one file
 function update_per_file_results(filename){
-  results = global.input_files[filename].results;
+  var results   = global.input_files[filename].results;
+  var processed = global.input_files[filename].processed
 
   //display only the labels marked as selected in the main table
-  selectedlabels = get_selected_labels(filename);
+  var selectedlabels = [];
+  if(!processed)
+  {  /*do nothing*/  }
+  else if(Object.keys(results).length==0)
+    //show a - to indicate that no objects at all were detected
+    selectedlabels = ["-"];
+  else{
+    selectedlabels = get_selected_labels(filename);
+    if(selectedlabels.length==0){
+      //all detected objects are classified as nonpollen
+      //indicated with a ?
+      selectedlabels = ["?"];
+    }
+  }
   $(`[id="detected_${filename}"]`).html(selectedlabels.join(', '));
 
 }
@@ -323,11 +337,11 @@ function process_file(filename){
       for(i in data.labels)
           add_new_prediction(filename, data.labels[i], data.boxes[i], data.flags[i], i);
       
-      //refresh gui
-      update_per_file_results(filename);
-
       global.input_files[filename].imagesize=data.imagesize;
       global.input_files[filename].processed=true;
+
+      //refresh gui
+      update_per_file_results(filename);
       
       //make the filename bold to indicate that the file has been processed
       $(`.ui.title[filename="${filename}"]`).find('label').wrap($('<b>'));
