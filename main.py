@@ -55,7 +55,7 @@ def file_upload():
         fullpath = os.path.join(TEMPFOLDER.name, os.path.basename(f.filename) )
         f.save(fullpath)
         #save the file additionally as jpg to make sure format is compatible with browser (tiff)
-        processing.write_as_jpeg(fullpath+'.jpg', processing.load_image(fullpath) )
+        processing.write_layers_as_jpeg(fullpath, processing.load_image(fullpath) )
     return 'OK'
 
 @app.route('/images/<imgname>')

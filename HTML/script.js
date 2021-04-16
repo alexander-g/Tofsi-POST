@@ -30,9 +30,6 @@ const RESULT = { prediction: {},      //{label:score}
 
 
 
-
-deepcopy = function(x){return JSON.parse(JSON.stringify(x))};
-
 //updates the ui accordion table
 function update_inputfiles_list(){
   $filestable = $('#filetable');
@@ -74,36 +71,6 @@ function on_inputfolder_select(input){
   set_input_files(files);
 }
 
-
-//transfers an input image to the flask server
-//creates the ui items in the correspondin accordion item (if not done yet)
-function upload_file(file){
-  var formData = new FormData();
-  formData.append('files', file );
-  result = $.ajax({
-      url: 'file_upload',      type: 'POST',
-      data: formData,          async: false,
-      cache: false,            contentType: false,
-      enctype: 'multipart/form-data',
-      processData: false,
-  }).done(function (response) {
-    target  = $(`td.content[filename="${file.name}"]`);
-    if(target.html().trim().length>0)
-      //only do this once
-      return;
-
-    target.html('');
-    content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
-    content.appendTo(target);
-    content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
-  });
-  return result;
-}
-
-
-function sortObjectByValue(o) {
-    return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).reduce((r, k) => (r[k] = o[k], r), {});
-}
 
 //builds the box which contains the image patch, and label confidences
 function build_result_details(filename, result, index){
@@ -328,10 +295,9 @@ function add_new_prediction(filename, prediction, box, flag, i){
 
 //sends an image to flask and initiates automatic prediction
 function process_file(filename){
-  upload_file(global.input_files[filename].file);
+  upload_file_to_flask('file_upload', global.input_files[filename].file);
   //send a processing request to python update gui with the results
   return $.get(`/process_image/${filename}`).done(function(data){
-      $(`[id="segmented_${filename}"]`).attr('src', "/images/segmented_"+filename);
       $(`[id="dimmer_${filename}"]`).dimmer('hide');
 
       for(i in data.labels)
@@ -357,13 +323,22 @@ function delete_image(filename){
 //called when user clicks on a table row to open the accordion item
 //uploads image to flask, creates accordion ui item
 function on_accordion_open(x){
-  target     = this;
-  contentdiv = this.find('.content');
+  var contentdiv = this.find('.content');
   if(contentdiv[0].innerHTML.trim())
+    //UI already updated
     return;
-  filename   = contentdiv.attr('filename');
-  file       = global.input_files[filename].file;
-  upload_file(file);
+  
+  var filename   = contentdiv.attr('filename');
+  var file       = global.input_files[filename].file;
+
+  upload_file_to_flask('file_upload', file).done(function(response) {
+    contentdiv.html('');
+    var content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
+    content.appendTo(contentdiv);
+    //content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
+    content.find('img').one('load', on_image_load_setup_slider);
+  });
+
 }
 
 //called when user clicks on the "process" button of a single image
@@ -452,7 +427,7 @@ function add_custom_box(filename, box){
   for(var i in box) box[i] = Math.max(Math.min(1,box[i]),0)
 
   console.log('NEW BOX', filename, box);
-  upload_file(global.input_files[filename].file);
+  upload_file_to_flask('file_upload', global.input_files[filename].file);
   
   i = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
   $.get(`/custom_patch/${filename}?box=[${box}]&index=${i}`).done(function(){

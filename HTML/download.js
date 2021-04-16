@@ -72,9 +72,6 @@ const labelme_shape_template = {
     flags: {}
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }  
 
 async function on_download_labelme(){
     for(filename of Object.keys(global.input_files)){
