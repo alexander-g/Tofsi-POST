@@ -36,17 +36,28 @@ def extract_patch(image, box):
     return detector.extract_patch(image, box)
 
 
+def write_as_jpeg(path,x):
+    if len(x.shape)==2:
+        x = x[...,np.newaxis]
+    elif len(x.shape)==4:
+        x = detector.resize_image_for_detection(x)
+    x = (x*255).astype(np.uint8)
+    x = PIL.Image.fromarray(x).convert('RGB')
+    x.save(path)
+
+
 def write_layers_as_jpeg(basepath, stack):
     assert np.ndim(stack)==4, 'Image is not a s z-stack'
 
     fused = detector.resize_image_for_detection(stack)
     fused = PIL.Image.fromarray((fused*255).astype(np.uint8)).convert('RGB')
     fused.save(basepath+'.jpg')
-    #write_as_jpeg(basepath+'.jpg', fused)
 
     for i,layer in enumerate(stack):
         if layer.dtype!=np.uint8:
             layer = (layer*255).astype(np.uint8)
         layer = PIL.Image.fromarray(layer).convert('RGB').resize(fused.size)
-        layer.save(f'{basepath}.{i}.jpg')
+        layer.save(f'{basepath}.layer{i}.jpg')
 
+def get_imagesize(path):
+    return PIL.Image.open(path).size

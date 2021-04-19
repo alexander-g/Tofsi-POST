@@ -7,10 +7,8 @@ function on_image_load_setup_slider(event){
     var $image   = $(event.target);
     var $content = $image.closest('[filename]');
     //show and resize the layer selection slider
-    var imgheight = $content.find('img')[0].clientHeight;
     var $slider   = $content.find('.ui.slider');
-    $slider.attr('style', `height:${imgheight}px; width:150px;`)
-           .slider({
+    $slider.slider({
                min:0, max:5, 
                onChange: function(){on_slider_change($slider);}
             });
@@ -59,7 +57,8 @@ function on_slider_change($slider){
 
     var $container = $slider.closest('[filename]');
     var filename   = $container.attr('filename');
-    var $img       = $container.find('img');
-    var new_src    = (level==0)? `/images/${filename}.jpg` : `/images/${filename}.${level-1}.jpg`;
+    var $img       = $container.find('.image-container').find('img');
+    var time       = new Date().getTime()
+    var new_src    = (level==0)? `/images/${filename}.jpg?_=${time}` : `/images/${filename}.layer${level-1}.jpg?_=${time}`;
     $img.attr('src', new_src);
 }

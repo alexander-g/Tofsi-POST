@@ -23,3 +23,29 @@ function upload_file_to_flask(url, file){
 function rename_file(file, newname){
     return new File([file], newname, {type: file.type});
 }
+
+
+function read_imagesize_from_tiff(file){
+    const promise = new Promise((resolve, reject) => {
+
+        var reader = new FileReader();
+        reader.onload = function(ev){
+            var parser          = new TIFFParser()
+            parser.tiffDataView = new DataView(ev.target.result);
+            parser.littleEndian = parser.isLittleEndian(parser.tiffDataView);
+
+            var firstIFDByteOffset = parser.getBytes(4, 4);
+            console.log(firstIFDByteOffset);
+            parser.fileDirectories = parser.parseFileDirectory(firstIFDByteOffset);
+            var fileDirectory      = parser.fileDirectories[0];
+            console.log( fileDirectory );
+
+            var width  = fileDirectory.ImageWidth.values[0];
+            var height = fileDirectory.ImageLength.values[0];
+            resolve({'width':width, 'height':height});
+        };
+        reader.readAsArrayBuffer(file);
+        
+      });
+    return promise
+}

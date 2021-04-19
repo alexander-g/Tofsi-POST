@@ -26,6 +26,8 @@
   <script src="/static/boxes.js">   </script>
   <script src="/static/download.js"></script>
   <script src="/static/slider.js">  </script>
+
+  <script src="/static/thirdparty/tiff.js">  </script>
   
 <!--
   <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -58,7 +60,7 @@
     <div filename="${filename}">
       <div class="ui large images">
           <div class="ui image">
-             <div class="ui disabled dimmer" id='dimmer_${filename}'>
+             <div class="ui dimmer" id='dimmer_${filename}'>
                    <div class="content">
                      <div class="ui primary button" filename="${filename}"
                            onclick='on_process_image(event)'>
@@ -69,6 +71,7 @@
 
             <div class="image-container">
               <img class="ui image" src="/images/${filename}.jpg" id="image_${filename}" style="margin:0;">
+              <!-- box overlays inserted here dynamically -->
             </div>
             <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
                 <i class="zoom-in icon" style="cursor:pointer; display:none;" onclick="on_zoom_button(event)" title="Zoom"></i>
@@ -76,8 +79,9 @@
             </div>
           </div> <!--ui image-->
 
-          <div class="ui image">
-            <div class="ui vertical slider"></div> <!--abusing image class to attach slider to the side-->
+          <div class="ui large image"> <!--abusing image class to attach slider to the side-->
+            <!-- 450px as in "large images" -->
+            <div class="ui vertical slider" style="width:150px; height:450px;"></div> 
           </div>
       </div> <!--ui large images-->
 
@@ -190,13 +194,13 @@
             onchange="on_inputfolder_select(this)"  webkitdirectory directory multiple>
       
       <div class="divider"></div>
-      <label for="input-external-predictions" class="ui icon item">
+      <label for="input-external-annotations" class="ui icon item">
         <i class="grey images icon"></i>
         Load Annotations
       </label>
-      <input type="file" id="input-external-predictions" style="display:none" 
-              onclick="this.value=null;" onchange="on_external_predictions_select(event)" 
-              accept="image/*" multiple>
+      <input type="file" id="input-external-annotations" style="display:none" 
+              onclick="this.value=null;" onchange="on_external_annotations_select(event)" 
+              accept=".json" multiple>
     </div>
   </div>
 
@@ -274,8 +278,6 @@
 <style>
 .ui.table td.active, .ui.table tr.active { background: #fff!important;  }
 </style>
-
-
 
 
 

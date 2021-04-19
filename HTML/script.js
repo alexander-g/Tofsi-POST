@@ -249,10 +249,10 @@ function on_goto_image(e){
 //callback when the user enters into the custom label input in a result box
 function on_custom_label_input(e){
   //get the filename
-  filename = $(e.target).closest('[filename]').attr('filename');
+  var filename = $(e.target).closest('[filename]').attr('filename');
   //get the index of prediction within the file
-  index = $(e.target).closest('[index]').attr('index');
-  $resultdetailbox = $(`.result-details[filename="${filename}"][index="${index}"]`);
+  var index = $(e.target).closest('[index]').attr('index');
+  var $resultdetailbox = $(`.result-details[filename="${filename}"][index="${index}"]`);
   //update all related input fields (could be multiple)
   $resultdetailbox.find('[type="text"][class="new-label"]').val(e.target.value);
   //set the checkbox (in case it isnt yet)
@@ -264,7 +264,7 @@ function on_custom_label_input(e){
 
 //adds a result-details-box to the low confidence section
 function add_to_lowconfidence(filename, result, i){
-  $resultdetailsbox = build_result_details(filename, result, i);
+  var  $resultdetailsbox = build_result_details(filename, result, i);
   $resultdetailsbox.appendTo($('#lowconfidence').find('.content'));
   //make the extra goto-button visible, only in the lowconf section
   $resultdetailsbox.find('.goto-full-image').show();
@@ -272,17 +272,20 @@ function add_to_lowconfidence(filename, result, i){
 }
 
 //new prediction, either automatically detected or manually added
-function add_new_prediction(filename, prediction, box, flag, i){
+function add_new_prediction(filename, prediction, box, flag, i, customlabel=undefined){
   //sort labels by probability
-  prediction = sortObjectByValue(prediction);
-  selection  = Object.keys(prediction).length>0? 0 : -1;
-  result     = {prediction:prediction, custom:'', selected:selection, box:box, loconf:flag};
+  var prediction = sortObjectByValue(prediction);
+  var selection  = Object.keys(prediction).length>0? 0 : -1;
+  var result     = {prediction:prediction, custom:'', selected:selection, box:box, loconf:flag};
   global.input_files[filename].results[i] =  result;
 
   //update file list table
-  contentdiv = $( `[id="patches_${filename}"]` );
+  var contentdiv = $( `[id="patches_${filename}"]` );
   //box that shows the image patch and the predicted labels and probabilities
-  rd = build_result_details(filename, result, i).appendTo(contentdiv);
+  var $rd = build_result_details(filename, result, i).appendTo(contentdiv);
+  if(customlabel != undefined)
+    $rd.find('.new-label').val(customlabel).trigger('input').blur();
+
   //add it to the low confidence section if needed
   if(flag)
     add_to_lowconfidence(filename, result, i)
@@ -298,47 +301,56 @@ function process_file(filename){
   upload_file_to_flask('file_upload', global.input_files[filename].file);
   //send a processing request to python update gui with the results
   return $.get(`/process_image/${filename}`).done(function(data){
-      $(`[id="dimmer_${filename}"]`).dimmer('hide');
-
       for(i in data.labels)
           add_new_prediction(filename, data.labels[i], data.boxes[i], data.flags[i], i);
-      
       global.input_files[filename].imagesize=data.imagesize;
-      global.input_files[filename].processed=true;
 
-      //refresh gui
-      update_per_file_results(filename);
-      
-      //make the filename bold to indicate that the file has been processed
-      $(`.ui.title[filename="${filename}"]`).find('label').wrap($('<b>'));
+      set_processed(filename);
+      //delete image from flask cache
       delete_image(filename);
     });
 }
+
+//sets the global.input_files[x].processed variable and updates view accordingly
+function set_processed(filename){
+  $(`[id="dimmer_${filename}"]`).dimmer('hide');
+  global.input_files[filename].processed=true;
+  //refresh gui
+  update_per_file_results(filename);
+  //make the filename bold to indicate that the file has been processed
+  $(`.ui.title[filename="${filename}"]`).find('label').wrap($('<b>'));
+}
+
+
 
 //sends command to flask to delete an image from the temporary folder (images can be large)
 function delete_image(filename){
   $.get(`/delete_image/${filename}`);
 }
 
+
+//creates all ui elements in an accordion item
+function maybe_create_filelist_item_content(filename){
+  var $contentdiv = $(`.content[filename="${filename}"]`);
+  if($contentdiv[0].innerHTML.trim())
+    //UI already created
+    return;
+  
+  var file = global.input_files[filename].file;
+  upload_file_to_flask('file_upload', file).done(function(response) {
+    $contentdiv.html('');
+    var content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
+    content.appendTo($contentdiv);
+    content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
+    content.find('img').one('load', on_image_load_setup_slider);
+  });
+}
+
 //called when user clicks on a table row to open the accordion item
 //uploads image to flask, creates accordion ui item
 function on_accordion_open(x){
-  var contentdiv = this.find('.content');
-  if(contentdiv[0].innerHTML.trim())
-    //UI already updated
-    return;
-  
-  var filename   = contentdiv.attr('filename');
-  var file       = global.input_files[filename].file;
-
-  upload_file_to_flask('file_upload', file).done(function(response) {
-    contentdiv.html('');
-    var content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
-    content.appendTo(contentdiv);
-    //content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
-    content.find('img').one('load', on_image_load_setup_slider);
-  });
-
+  var filename = this.find('[filename]').attr('filename');
+  maybe_create_filelist_item_content(filename);
 }
 
 //called when user clicks on the "process" button of a single image
@@ -396,14 +408,10 @@ function add_box_overlay_highlight_callback($resultdetailsbox){
 }
 
 
-
-
-
-
 //callback from the plus-icon in the upper right corner of an image
 function on_add_custom_box_button(e){
   $etarget = $(e.target)
-  var $image_container = $etarget.closest('.dimmable').find('.image-container')
+  var $image_container = $etarget.closest('[filename]').find('.image-container')
   var filename         = $etarget.closest('[filename]').attr('filename');
 
   $etarget.toggleClass('active');
@@ -422,7 +430,7 @@ function on_add_custom_box_button(e){
 
 
 //called after drawing a new box
-function add_custom_box(filename, box){
+function add_custom_box(filename, box, label=undefined){
   //clip
   for(var i in box) box[i] = Math.max(Math.min(1,box[i]),0)
 
@@ -432,16 +440,46 @@ function add_custom_box(filename, box){
   i = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
   $.get(`/custom_patch/${filename}?box=[${box}]&index=${i}`).done(function(){
     console.log('custom_patch done');
-    add_new_prediction(filename, {}, box, false, i)
+    add_new_prediction(filename, {}, box, false, i, label);
     update_per_file_results(filename);
     delete_image(filename);
   });
 }
 
 
+function load_annotations_from_file(jsonfile, imagefilename){
+  maybe_create_filelist_item_content(imagefilename);
 
+  var reader = new FileReader();
+  reader.onload = async function(){
+    var text = reader.result;
+    var data = JSON.parse(text);
+    for(var i in data.shapes){
+      var imagesize = await read_imagesize_from_tiff(global.input_files[imagefilename].file);
+      var height    = imagesize.height;
+      var width     = imagesize.width;
+      var box       = data.shapes[i].points;
+          box       = [box[0][1]/height, box[0][0]/width, box[1][1]/height, box[1][0]/width];
+      var label = data.shapes[i].label;
+      add_custom_box(imagefilename, box, label);
+    }
+    set_processed(imagefilename);
+  };
+  reader.readAsText(jsonfile);
+}
 
-
+function on_external_annotations_select(ev){
+  for(f of ev.target.files){
+    var basename = filebasename(f.name);
+    //match annotation files with input files
+    for(var inputfile of Object.values(global.input_files)){
+      if(basename == filebasename(inputfile.name) ){
+        console.log('Matched annotation for input file ', inputfile.name);
+        load_annotations_from_file(f, inputfile.name);
+      }
+    }
+  }
+}
 
 
 //
