@@ -8,14 +8,14 @@ function sortObjectByValue(o) {
     return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).reduce((r, k) => (r[k] = o[k], r), {});
 }
 
-function upload_file_to_flask(url, file){
+function upload_file_to_flask(url, file, async=false){
     var formData = new FormData();
     formData.append('files', file);
     return $.ajax({
         url: url, type: 'POST',
         data: formData,
         processData: false, cache: false,
-        contentType: false, async: false,
+        contentType: false, async: async,
         enctype: 'multipart/form-data'
     });
 }
@@ -35,17 +35,17 @@ function read_imagesize_from_tiff(file){
             parser.littleEndian = parser.isLittleEndian(parser.tiffDataView);
 
             var firstIFDByteOffset = parser.getBytes(4, 4);
-            console.log(firstIFDByteOffset);
-            parser.fileDirectories = parser.parseFileDirectory(firstIFDByteOffset);
+            parser.fileDirectories = parser.parseFileDirectory(firstIFDByteOffset, only_first=true);
             var fileDirectory      = parser.fileDirectories[0];
-            console.log( fileDirectory );
 
             var width  = fileDirectory.ImageWidth.values[0];
             var height = fileDirectory.ImageLength.values[0];
             resolve({'width':width, 'height':height});
         };
-        reader.readAsArrayBuffer(file);
-        
+        //reading only 1024 bytes to get the image size
+        //this might be a strong assumption
+        reader.readAsArrayBuffer(file.slice(0, 1024));
+
       });
     return promise
 }

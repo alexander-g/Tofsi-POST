@@ -246,20 +246,25 @@ function on_goto_image(e){
 
 
 
+function set_custom_label(filename, index, label){
+  global.input_files[filename].results[index].custom = label;
+  update_per_file_results(filename, true);
+  //update the result details (if they exists)
+  var $resultdetailbox = $(`.result-details[filename="${filename}"][index="${index}"]`);
+  //update all related input fields (could be multiple)
+  $resultdetailbox.find('[type="text"][class="new-label"]').val(label);
+  //set the checkbox (in case it isnt yet)
+  $resultdetailbox.find('.checkbox[index="-1"]').click();
+}
+
 //callback when the user enters into the custom label input in a result box
 function on_custom_label_input(e){
   //get the filename
   var filename = $(e.target).closest('[filename]').attr('filename');
   //get the index of prediction within the file
   var index = $(e.target).closest('[index]').attr('index');
-  var $resultdetailbox = $(`.result-details[filename="${filename}"][index="${index}"]`);
-  //update all related input fields (could be multiple)
-  $resultdetailbox.find('[type="text"][class="new-label"]').val(e.target.value);
-  //set the checkbox (in case it isnt yet)
-  $resultdetailbox.find('.checkbox[index="-1"]').click();
+  set_custom_label(filename, index, e.target.value);
   e.target.focus();
-  global.input_files[filename].results[index].custom = e.target.value;
-  update_per_file_results(filename, true);
 }
 
 //adds a result-details-box to the low confidence section
@@ -282,9 +287,11 @@ function add_new_prediction(filename, prediction, box, flag, i, customlabel=unde
   //update file list table
   var contentdiv = $( `[id="patches_${filename}"]` );
   //box that shows the image patch and the predicted labels and probabilities
-  var $rd = build_result_details(filename, result, i).appendTo(contentdiv);
-  if(customlabel != undefined)
-    $rd.find('.new-label').val(customlabel).trigger('input').blur();
+  build_result_details(filename, result, i).appendTo(contentdiv);
+  if(customlabel != undefined){
+    //set the custom label in the input
+    set_custom_label(filename, i, customlabel);
+  }
 
   //add it to the low confidence section if needed
   if(flag)
@@ -337,12 +344,20 @@ function maybe_create_filelist_item_content(filename){
     return;
   
   var file = global.input_files[filename].file;
-  upload_file_to_flask('file_upload', file).done(function(response) {
+  return upload_file_to_flask('file_upload', file, async=true).done(function(response) {
     $contentdiv.html('');
     var content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
     content.appendTo($contentdiv);
-    content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
+    if(!global.input_files[filename].processed)
+      content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
     content.find('img').one('load', on_image_load_setup_slider);
+
+    //this file might already have results (from loaded json annotations)
+    var results = global.input_files[filename].results;
+    for(i of Object.keys(results))
+      //re-add prediction to update ui
+      //add_new_prediction(filename, results[i].prediction, results[i].box, false, i, results[i].custom);
+      add_custom_box(filename, results[i].box, results[i].custom, i, already_uploaded=true);
   });
 }
 
@@ -430,52 +445,61 @@ function on_add_custom_box_button(e){
 
 
 //called after drawing a new box
-function add_custom_box(filename, box, label=undefined){
+function add_custom_box(filename, box, label=undefined, index=undefined, already_uploaded=false){
   //clip
   for(var i in box) box[i] = Math.max(Math.min(1,box[i]),0)
 
   console.log('NEW BOX', filename, box);
-  upload_file_to_flask('file_upload', global.input_files[filename].file);
+  if(!already_uploaded)
+    upload_file_to_flask('file_upload', global.input_files[filename].file);
   
-  i = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
-  $.get(`/custom_patch/${filename}?box=[${box}]&index=${i}`).done(function(){
+  if(index==undefined)
+    var index = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
+  $.get(`/custom_patch/${filename}?box=[${box}]&index=${index}`).done(function(){
     console.log('custom_patch done');
-    add_new_prediction(filename, {}, box, false, i, label);
+    add_new_prediction(filename, {}, box, false, index, label);
     update_per_file_results(filename);
     delete_image(filename);
   });
 }
 
 
+//read a json annotation file and set them as predictions
 function load_annotations_from_file(jsonfile, imagefilename){
-  maybe_create_filelist_item_content(imagefilename);
-
   var reader = new FileReader();
   reader.onload = async function(){
     var text = reader.result;
     var data = JSON.parse(text);
-    for(var i in data.shapes){
+    if(data.shapes.length>0){
+      //console.log('loading imagesize');
       var imagesize = await read_imagesize_from_tiff(global.input_files[imagefilename].file);
+      //console.log('imagesize loaded');
       var height    = imagesize.height;
       var width     = imagesize.width;
+    }
+    for(var i in data.shapes){
       var box       = data.shapes[i].points;
           box       = [box[0][1]/height, box[0][0]/width, box[1][1]/height, box[1][0]/width];
       var label = data.shapes[i].label;
-      add_custom_box(imagefilename, box, label);
+      //add_custom_box(imagefilename, box, label);
+      //add_new_prediction(imagefilename, {}, box, false, i, label);
+      var result     = {prediction:{}, custom:label, selected:-1, box:box, loconf:false};
+      global.input_files[imagefilename].results[i] =  result;
     }
     set_processed(imagefilename);
   };
   reader.readAsText(jsonfile);
 }
 
-function on_external_annotations_select(ev){
+//called when user selects json annotation files
+async function on_external_annotations_select(ev){
   for(f of ev.target.files){
     var basename = filebasename(f.name);
     //match annotation files with input files
-    for(var inputfile of Object.values(global.input_files)){
-      if(basename == filebasename(inputfile.name) ){
-        console.log('Matched annotation for input file ', inputfile.name);
-        load_annotations_from_file(f, inputfile.name);
+    for(var inputfilename of Object.keys(global.input_files)){
+      if(basename == filebasename(inputfilename) ){
+        //console.log('Matched annotation for input file ', inputfilename);
+        load_annotations_from_file(f, inputfilename);
       }
     }
   }

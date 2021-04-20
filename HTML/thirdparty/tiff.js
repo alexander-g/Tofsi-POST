@@ -312,7 +312,7 @@ TIFFParser.prototype = {
 		return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
 	},
 
-	parseFileDirectory: function (byteOffset) {
+	parseFileDirectory: function (byteOffset, only_first=false) {
 		var numDirEntries = this.getBytes(2, byteOffset);
 
 		var tiffFields = [];
@@ -335,7 +335,7 @@ TIFFParser.prototype = {
 
 		var nextIFDByteOffset = this.getBytes(4, i);
 
-		if (nextIFDByteOffset === 0x00000000) {
+		if (nextIFDByteOffset === 0x00000000 || only_first) {
 			return this.fileDirectories;
 		} else {
 			return this.parseFileDirectory(nextIFDByteOffset);

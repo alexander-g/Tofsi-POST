@@ -1,4 +1,4 @@
-import webbrowser, os, tempfile, io, sys
+import webbrowser, os, tempfile, io, sys, glob, shutil
 os.environ['PYTORCH_JIT']='0' #needed for packaging
 
 import flask
@@ -32,8 +32,16 @@ import tempfile
 
 
 app        = Flask('Pollen Detector', static_folder=os.path.abspath('./HTML'))
-TEMPFOLDER = tempfile.TemporaryDirectory(prefix='pollen_detector_')
+
+
+TEMPPREFIX = 'pollen_detector_'
+TEMPFOLDER = tempfile.TemporaryDirectory(prefix=TEMPPREFIX)
 print('Temporary Directory: %s'%TEMPFOLDER.name)
+#delete all previous temporary folders if not cleaned up properly
+for tmpdir in glob.glob( os.path.join(os.path.dirname(TEMPFOLDER.name), TEMPPREFIX+'*') ):
+    if tmpdir != TEMPFOLDER.name:
+        print('Removing ',tmpdir)
+        shutil.rmtree(tmpdir)
 
 
 

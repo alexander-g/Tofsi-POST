@@ -45,15 +45,6 @@ function on_mousewheel(ev){
 
 function on_slider_change($slider){
     var level = $slider.slider('get value');
-    var popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
-    /*$slider.popup({
-        position: 'right center',
-        content:   popup_text,
-        hoverable: true,
-        closable:  false,
-        target:    $slider.find('.thumb'),
-    });*/
-    $slider.popup('change content', popup_text);
 
     var $container = $slider.closest('[filename]');
     var filename   = $container.attr('filename');
@@ -61,4 +52,7 @@ function on_slider_change($slider){
     var time       = new Date().getTime()
     var new_src    = (level==0)? `/images/${filename}.jpg?_=${time}` : `/images/${filename}.layer${level-1}.jpg?_=${time}`;
     $img.attr('src', new_src);
+
+    var popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
+    $slider.popup('change content', popup_text);
 }
