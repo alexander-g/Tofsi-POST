@@ -105,7 +105,7 @@ function build_result_details(filename, result, index){
     //update the global data
     global.input_files[filename].results[index].selected = checkboxindex;
     update_per_file_results(filename, true);
-    console.log(filename + ":"+index + ":" + $(this).parent().attr('index'));
+    console.log(filename + ":"+index + ":" + checkboxindex);
   }});
 
   add_box_overlay_highlight_callback(resultbox);
@@ -346,7 +346,8 @@ function maybe_create_filelist_item_content(filename){
   var file = global.input_files[filename].file;
   return upload_file_to_flask('file_upload', file, async=true).done(function(response) {
     $contentdiv.html('');
-    var content = $("#filelist-item-content-template").tmpl([{filename:file.name}]);
+    var time    = new Date().getTime()
+    var content = $("#filelist-item-content-template").tmpl([{filename:file.name, time:time}]);
     content.appendTo($contentdiv);
     if(!global.input_files[filename].processed)
       content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
@@ -356,8 +357,10 @@ function maybe_create_filelist_item_content(filename){
     var results = global.input_files[filename].results;
     for(i of Object.keys(results))
       //re-add prediction to update ui
-      //add_new_prediction(filename, results[i].prediction, results[i].box, false, i, results[i].custom);
-      add_custom_box(filename, results[i].box, results[i].custom, i, already_uploaded=true);
+      if(results[i].selected<0)
+        add_custom_box(filename, results[i].box, results[i].custom, i, already_uploaded=true);
+      else
+        add_new_prediction(filename, results[i].prediction, results[i].box, false, i, undefined);
   });
 }
 
@@ -471,9 +474,7 @@ function load_annotations_from_file(jsonfile, imagefilename){
     var text = reader.result;
     var data = JSON.parse(text);
     if(data.shapes.length>0){
-      //console.log('loading imagesize');
       var imagesize = await read_imagesize_from_tiff(global.input_files[imagefilename].file);
-      //console.log('imagesize loaded');
       var height    = imagesize.height;
       var width     = imagesize.width;
     }
@@ -498,7 +499,6 @@ async function on_external_annotations_select(ev){
     //match annotation files with input files
     for(var inputfilename of Object.keys(global.input_files)){
       if(basename == filebasename(inputfilename) ){
-        //console.log('Matched annotation for input file ', inputfilename);
         load_annotations_from_file(f, inputfilename);
       }
     }
