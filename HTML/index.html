@@ -57,20 +57,13 @@
     <div filename="${filename}">
       <div class="ui large images">
           <div class="ui image">
-             <div class="ui dimmer" id='dimmer_${filename}'>
-                   <div class="content">
-                     <div class="ui primary button" filename="${filename}"
-                           onclick='on_process_image(event)'>
-                          Process Image
-                     </div>
-                   </div>
-             </div>
 
             <div class="image-container">
               <img class="ui image" src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="margin:0;">
               <!-- box overlays inserted here dynamically -->
             </div>
             <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
+                <i class="play link blue icon process-single-image" onclick="on_process_image(event)"  title="Process Image"></i>
                 <i class="zoom-in icon" style="cursor:pointer; display:none;" onclick="on_zoom_button(event)" title="Zoom"></i>
                 <i class="plus icon" style="cursor:pointer" onclick="on_add_custom_box_button(event)"  title="Add Custom Box"></i>
             </div>

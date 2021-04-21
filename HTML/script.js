@@ -320,7 +320,6 @@ function process_file(filename){
 
 //sets the global.input_files[x].processed variable and updates view accordingly
 function set_processed(filename){
-  $(`[id="dimmer_${filename}"]`).dimmer('hide');
   global.input_files[filename].processed=true;
   //refresh gui
   update_per_file_results(filename);
@@ -349,8 +348,6 @@ function maybe_create_filelist_item_content(filename){
     var time    = new Date().getTime()
     var content = $("#filelist-item-content-template").tmpl([{filename:file.name, time:time}]);
     content.appendTo($contentdiv);
-    if(!global.input_files[filename].processed)
-      content.find('.ui.dimmer').dimmer({'closable':false}).dimmer('show');
     content.find('img').one('load', on_image_load_setup_slider);
 
     //this file might already have results (from loaded json annotations)
@@ -373,7 +370,7 @@ function on_accordion_open(x){
 
 //called when user clicks on the "process" button of a single image
 function on_process_image(e){
-  filename = e.target.attributes['filename'].value;
+  filename = $(e.target).closest('[filename]').attr('filename');
   process_file(filename);
 }
 
