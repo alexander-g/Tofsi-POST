@@ -49,3 +49,22 @@ function read_imagesize_from_tiff(file){
       });
     return promise
 }
+
+
+function read_imagename_from_json(jsonfile){
+    const promise = new Promise((resolve, reject) => {
+        var reader = new FileReader()
+        reader.onload = function(ev){
+            var text = ev.target.result;
+            var idx  = text.indexOf('"imagePath"');
+                idx  = text.indexOf(',', position=idx);
+            text     = text.slice(0,idx)+'}';
+            data     = JSON.parse(text)
+            console.log(data['imagePath']);
+        };
+        //reading only 4kbytes to get the image name
+        //this might be a strong assumption
+        reader.readAsText(jsonfile.slice(0,1024*4));
+    });
+    return promise;
+}

@@ -110,6 +110,11 @@ function build_result_details(filename, result, index){
 
   add_box_overlay_highlight_callback(resultbox);
 
+  //load image size (needed for json download)
+  read_imagesize_from_tiff(global.input_files[filename].file).then(
+    imagesize => {global.input_files[filename].imagesize = [imagesize.height, imagesize.width];}
+  );
+
   return resultbox;
 }
 
@@ -457,6 +462,7 @@ function add_custom_box(filename, box, label=undefined, index=undefined, already
     var index = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
   $.get(`/custom_patch/${filename}?box=[${box}]&index=${index}`).done(function(){
     console.log('custom_patch done');
+    set_processed(filename);
     add_new_prediction(filename, {}, box, false, index, label);
     update_per_file_results(filename);
     delete_image(filename);
@@ -492,6 +498,7 @@ function load_annotations_from_file(jsonfile, imagefilename){
 //called when user selects json annotation files
 async function on_external_annotations_select(ev){
   for(f of ev.target.files){
+    read_imagename_from_json(f);
     var basename = filebasename(f.name);
     //match annotation files with input files
     for(var inputfilename of Object.keys(global.input_files)){
