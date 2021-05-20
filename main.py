@@ -8,6 +8,7 @@ import json
 import processing
 
 import torch, torchvision
+import onnxruntime
 
 import numpy as np
 import skimage.io         as skio
@@ -21,12 +22,6 @@ import skimage.util       as skimgutil
 #import sklearn.utils      as skutils
 
 import tempfile
-#import util
-#monkeypatching
-#util.tempfile = tempfile
-#util.os       = os
-#util.keras    = keras
-
 
 
 

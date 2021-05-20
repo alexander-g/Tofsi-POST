@@ -15,7 +15,10 @@ pyinstaller==3.5
 scipy==1.4.1
 matplotlib<3.2
 
+onnxruntime==1.7.0
+
 #XXX: try to remove those
 pytorch_lightning==1.0.6
 scikit-learn==0.23.2
 imbalanced-learn==0.6.2
+
