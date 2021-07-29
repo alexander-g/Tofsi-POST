@@ -1,28 +1,27 @@
 
-function download(filename, text) {
+//downloads an element from the uri (to the user hard drive)
+function downloadURI(filename, uri) {
     var element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('href', uri);
     element.setAttribute('download', filename);
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-}
+  }
   
-function on_download_csv(){
-    csvtxt = '';
-    for(filename of Object.keys(global.input_files)){
-        selectedlabels = get_selected_labels(filename);
-        csvtxt+= [filename].concat(selectedlabels).join(', ')+';\n'
-      }
+  function downloadText(filename, text){
+    return downloadURI(filename, 'data:text/plain;charset=utf-8,'+encodeURIComponent(text))
+  }
   
-    if(!!csvtxt)
-      download('detected_pollen.csv', csvtxt)
-}
+  function downloadBlob(filename, blob){
+    return downloadURI(filename, URL.createObjectURL(blob));
+  }
+  
 
 
 //file format requested by nia
-function on_download_csv(){
+async function on_download_csv(){
     function format_resultrow(result, filename, i){
         var row = `${filename}-${i},`;
         for(var pollenspecies of global.KNOWN_POLLENSPECIES.concat(['Other'])){
@@ -36,18 +35,23 @@ function on_download_csv(){
         return row;
     }
 
-    var csvtext = '';
-    csvtext += "Filename," + global.KNOWN_POLLENSPECIES.join(',') + ",Other,Final;\n"
-    for(var filename of Object.keys(global.input_files)){
-        var results = Object.values(global.input_files[filename].results);
-        for(var i in results){
-            csvtext += format_resultrow(results[i], filename, i);
+    var file_groups = group_filenames_by_dirname( Object.keys(global.input_files) )
+    for(var group of Object.keys(file_groups)){
+        var csvtext = '';
+        for(var filename of file_groups[group]){
+            var results = Object.values(global.input_files[filename].results);
+            for(var i in results){
+                csvtext += format_resultrow(results[i], file_basename(filename), i);
+            }
         }
-    }
 
-    if(!!csvtext)
-      download('detected_pollen.csv', csvtext)
-    return csvtext;
+        if(!!csvtext){
+            csvtext = "Filename," + global.KNOWN_POLLENSPECIES.join(',') + ",Other,Final;\n" + csvtext;
+            downloadText(`detected_pollen_${group}.csv`, csvtext)
+        }
+        await sleep(250);
+    }
+    return;
 }
 
 
@@ -73,14 +77,16 @@ const labelme_shape_template = {
 }
 
 
-async function on_download_labelme(){
+function on_download_labelme(){
+    var zip = new JSZip();
+    var n = 0
     for(filename of Object.keys(global.input_files)){
         var f = global.input_files[filename];
         if(!f.processed)
             continue;
 
         var jsondata = deepcopy(labelme_template);
-        jsondata.imagePath = filename;
+        jsondata.imagePath = file_basename(filename);
         height = f.imagesize.length==4? f.imagesize[1] : f.imagesize[0];
         width  = f.imagesize.length==4? f.imagesize[2] : f.imagesize[1];
 
@@ -94,11 +100,15 @@ async function on_download_labelme(){
             jsondata.shapes.push(jsonshape);
         }
 
-        var jsonfilename = filename.split('.').slice(0, -1).join('.')+'.json'
-        download(jsonfilename, JSON.stringify(jsondata, null, 2));
-
-        //sleep for a few milliseconds because chrome does not allow more than 10 simulataneous downloads
-        await new Promise(resolve => setTimeout(resolve, 250));
+        var jsonfilename = filename.replace(new RegExp(PATH_SEPARATOR, 'g'), '/').split('.').slice(0, -1).join('.')+'.json'
+        zip.file(jsonfilename, new Blob([JSON.stringify(jsondata, null, 2)], {type : 'application/json'}), {binary:true});
+        n++;
     }
-}
 
+    if(n==0)
+        return;
+    
+    zip.generateAsync({type:"blob"}).then( blob => {
+        downloadBlob(  'annotations.zip', blob  );
+    } );
+}

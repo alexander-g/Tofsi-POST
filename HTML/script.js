@@ -47,19 +47,29 @@ function reset_lowconfidence_section(){
   update_number_of_lowconfidence_predictions();
 }
 
+function update_file_counter(){
+  var $label = $("#file-counter-label")
+  var count  = Object.keys(global.input_files).length;
+  $label.text(`Loaded Files (${count})`)
+}
+
 
 //replaces the old global.input_files with a new list of files, updates ui
 function set_input_files(files){
-  global.input_files = {};
-  for(f of files)
+  //global.input_files = {};
+  for(var f of files){
+    f = rename_file(f, full_filename(f))
     global.input_files[f.name] = Object.assign({}, deepcopy(FILE), {name: f.name, file: f});
+  }
   update_inputfiles_list();
   reset_lowconfidence_section()
+  update_file_counter()
 }
 
 //called when user selects input file(s)
 function on_inputfiles_select(input){
   set_input_files(input.target.files);
+  input.value = ""; //reset the input
 }
 
 //called when user selects an input folder
@@ -69,6 +79,14 @@ function on_inputfolder_select(input){
     if(f.type.startsWith('image'))
         files.push(f);
   set_input_files(files);
+  input.value = ""; //reset the input
+}
+
+//called when user selects "Clear Loaded Files" in the File menu
+function on_clear_files(){
+  global.input_files = {};
+  update_inputfiles_list();
+  reset_lowconfidence_section()
 }
 
 
@@ -105,7 +123,6 @@ function build_result_details(filename, result, index){
     //update the global data
     global.input_files[filename].results[index].selected = checkboxindex;
     update_per_file_results(filename, true);
-    console.log(filename + ":"+index + ":" + checkboxindex);
   }});
 
   add_box_overlay_highlight_callback(resultbox);
@@ -178,6 +195,8 @@ function update_per_file_results(filename){
   }
   $(`[id="detected_${filename}"]`).html(selectedlabels.join(', '));
 
+  //make the filename bold to indicate that the file has been processed
+  $(`.ui.title[filename="${filename}"]`).find('label').css('font-weight', (processed)?'bold':'normal');
 }
 
 
@@ -328,8 +347,6 @@ function set_processed(filename){
   global.input_files[filename].processed=true;
   //refresh gui
   update_per_file_results(filename);
-  //make the filename bold to indicate that the file has been processed
-  $(`.ui.title[filename="${filename}"]`).find('label').wrap($('<b>'));
 }
 
 
@@ -484,9 +501,7 @@ function load_annotations_from_file(jsonfile, imagefilename){
     for(var i in data.shapes){
       var box       = data.shapes[i].points;
           box       = [box[0][1]/height, box[0][0]/width, box[1][1]/height, box[1][0]/width];
-      var label = data.shapes[i].label;
-      //add_custom_box(imagefilename, box, label);
-      //add_new_prediction(imagefilename, {}, box, false, i, label);
+      var label      = data.shapes[i].label;
       var result     = {prediction:{}, custom:label, selected:-1, box:box, loconf:false};
       global.input_files[imagefilename].results[i] =  result;
     }
@@ -499,10 +514,10 @@ function load_annotations_from_file(jsonfile, imagefilename){
 async function on_external_annotations_select(ev){
   for(f of ev.target.files){
     read_imagename_from_json(f);
-    var basename = filebasename(f.name);
+    var basename = strip_file_extension(f.name);
     //match annotation files with input files
     for(var inputfilename of Object.keys(global.input_files)){
-      if(basename == filebasename(inputfilename) ){
+      if(basename == strip_file_extension(file_basename(inputfilename)) ){
         load_annotations_from_file(f, inputfilename);
       }
     }

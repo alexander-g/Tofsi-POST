@@ -2,7 +2,7 @@ deepcopy = function(x){return JSON.parse(JSON.stringify(x))};
 sleep    = function(ms) { return new Promise(resolve => setTimeout(resolve, ms));  } //XXX: await sleep(x)
 
 //returns the name of a file without its ending
-filebasename = (filename) => filename.split('.').slice(0, -1).join('.');
+strip_file_extension = (filename) => filename.split('.').slice(0, -1).join('.');
 
 function sortObjectByValue(o) {
     return Object.keys(o).sort(function(a,b){return o[b]-o[a]}).reduce((r, k) => (r[k] = o[k], r), {});
@@ -60,11 +60,56 @@ function read_imagename_from_json(jsonfile){
                 idx  = text.indexOf(',', position=idx);
             text     = text.slice(0,idx)+'}';
             data     = JSON.parse(text)
-            console.log(data['imagePath']);
         };
         //reading only 4kbytes to get the image name
         //this might be a strong assumption
         reader.readAsText(jsonfile.slice(0,1024*4));
     });
     return promise;
+}
+
+
+//using non-standard character as path separator to avoid problems
+PATH_SEPARATOR = '╱'
+//NOTE: ord( '⧸' ), ord('∕'), ord('⁄'), ord('╱')  =  (10744, 8725, 8260, 9585)
+
+
+function full_filename(f){
+    var name = f.name
+    if('webkitRelativePath' in f)
+		if(f.webkitRelativePath.length>0)
+            name = f.webkitRelativePath
+    name = name.replace(/\//g, PATH_SEPARATOR)  //replace all /
+    name = name.replace(/\\/g, PATH_SEPARATOR)  //replace all \
+	return name
+}
+
+
+
+function file_dirname(filename){
+    var splits = filename.split(PATH_SEPARATOR);
+    if(splits.length==1)
+        return ''
+    else{
+        splits.pop(-1);
+        return splits.join(PATH_SEPARATOR);
+    }
+}
+
+function file_basename(filename){
+    var splits = filename.split(PATH_SEPARATOR);
+    return splits.pop(-1)
+}
+
+
+function group_filenames_by_dirname(filenames){
+    var result = {}
+    for(var f of filenames){
+        var dirname = file_dirname(f)
+        if (dirname in result)
+            result[dirname].push(f);
+        else
+            result[dirname] = [f];
+    }
+    return result;
 }

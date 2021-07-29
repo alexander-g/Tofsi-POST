@@ -55,49 +55,51 @@ def file_upload():
     files = request.files.getlist("files")
     for f in files:
         print('Upload: %s'%f.filename)
-        fullpath = os.path.join(TEMPFOLDER.name, os.path.basename(f.filename) )
+        fullpath = os.path.join(TEMPFOLDER.name, f.filename )
+        os.makedirs(os.path.dirname(fullpath), exist_ok=True)
         f.save(fullpath)
         #save the file additionally as jpg to make sure format is compatible with browser (tiff)
         processing.write_layers_as_jpeg(fullpath, processing.load_image(fullpath) )
     return 'OK'
 
-@app.route('/images/<imgname>')
-def images(imgname):
-    print('Download: %s'%os.path.join(TEMPFOLDER.name, imgname))
-    return flask.send_from_directory(TEMPFOLDER.name, imgname)
+@app.route('/images/<path:path>')
+def images(path):
+    print('Download: %s'%os.path.join(TEMPFOLDER.name, path))
+    return flask.send_from_directory(TEMPFOLDER.name, path)
 
-@app.route('/process_image/<imgname>')
-def process_image(imgname):
-    fullpath     = os.path.join(TEMPFOLDER.name, imgname)
+
+@app.route('/process_image/<path:path>')
+def process_image(path):
+    fullpath     = os.path.join(TEMPFOLDER.name, path)
     image        = processing.load_image(fullpath)
     result       = processing.process_image(image)
 
     for i,patch in enumerate(result.patches):
-        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(i,imgname)), patch)
+        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(i,path)), patch)
     print(result.labels)
     return flask.jsonify({'labels':result.labels, 'flags':result.flags, 
                           'boxes':np.array(result.boxes).tolist(), 'imagesize':image.shape })
 
 
-@app.route('/delete_image/<imgname>')
-def delete_image(imgname):
-    fullpath = os.path.join(TEMPFOLDER.name, imgname)
+@app.route('/delete_image/<path:path>')
+def delete_image(path):
+    fullpath = os.path.join(TEMPFOLDER.name, path)
     print('DELETE: %s'%fullpath)
     if os.path.exists(fullpath):
         os.remove(fullpath)
     return 'OK'
 
 
-@app.route('/custom_patch/<imgname>')
-def custom_patch(imgname):
+@app.route('/custom_patch/<path:path>')
+def custom_patch(path):
     box      = json.loads(request.args.get('box'))
     index    = int(request.args.get('index'))
-    print(f'CUSTOM PATCH: {imgname} @box={box}')
-    fullpath = os.path.join(TEMPFOLDER.name, imgname)
+    print(f'CUSTOM PATCH: {path} @box={box}')
+    fullpath = os.path.join(TEMPFOLDER.name, path)
     image    = processing.load_image(fullpath)
     patch    = processing.extract_patch(image, box)
     if patch is not None:
-        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(index,imgname)), patch)
+        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(index,path)), patch)
         return 'OK'
 
 

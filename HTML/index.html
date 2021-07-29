@@ -25,18 +25,9 @@
   <script src="/static/slider.js">  </script>
 
   <script src="/static/thirdparty/tiff.js">  </script>
+  <script src="/static/thirdparty/jszip.min.js"></script>
   
-<!--
-  <script src="https://d3js.org/d3.v5.min.js"></script>
-  <link href="https://c3js.org/css/c3-eb4b9be8.css" rel="stylesheet">
-  <script src="https://c3js.org/js/c3.min-bc946ede.js"></script>
-  <script src="/static/histogram.js"></script>
--->
 
-<!--
-  <script src="/static/magnifier.js"></script>
-  <link rel="stylesheet" href="/static/styles.css">
--->
 
   <script id="filetable-item-template" type="text/x-jQuery-tmpl">
     <tr class="ui title" filename="${filename}">
@@ -183,6 +174,11 @@
       <input type="file" id="input_folder" style="display:none"
             onchange="on_inputfolder_select(this)"  webkitdirectory directory multiple>
       
+      <label class="ui icon item" onclick="on_clear_files()">
+        <i class="minus square outline icon"></i>
+        Clear Loaded Files
+      </label>
+      
       <div class="divider"></div>
       <label for="input-external-annotations" class="ui icon item">
         <i class="grey images icon"></i>
@@ -200,7 +196,7 @@
       <i class="play icon"></i>
       Process All Images
   </label>
-  <label class="ui red button" onclick="on_cancel()" id="cancel-button" style="display:none;">
+  <label class="ui red button" onclick="cancel_processing()" id="cancel-processing-button" style="display:none;">
       <i class="x icon"></i>
       Cancel
   </label>
@@ -252,7 +248,7 @@
 <div class="ui container" style="margin-bottom:500px">
 <table class="ui basic celled table accordion" id="filetable">
       <thead><tr>
-    <th class="six wide">Filename</th>
+    <th class="six wide" id="file-counter-label">Loaded Files</th>
     <th class="nine wide">Detected Pollen</th>
     <!--<th class="one wide"></th>-->
     </tr></thead>
