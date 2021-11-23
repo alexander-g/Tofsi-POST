@@ -6,6 +6,7 @@
 function on_image_load_setup_slider(event){
     var $image   = $(event.target);
     var $content = $image.closest('[filename]');
+    console.log($content)
     //show and resize the layer selection slider
     var $slider   = $content.find('.ui.slider');
     $slider.slider({

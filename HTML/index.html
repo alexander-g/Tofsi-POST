@@ -29,6 +29,17 @@
   
 
 
+  <style type="text/css">
+    .unselectable {
+      user-drag: none; 
+      user-select: none;
+      -moz-user-select: none;
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+    </style>
+
   <script id="filetable-item-template" type="text/x-jQuery-tmpl">
     <tr class="ui title" filename="${filename}">
       <td> <i class="dropdown icon"></i><label>${filename}</label></td>
@@ -46,28 +57,27 @@
 
   <script id="filelist-item-content-template" type="text/x-jQuery-tmpl">
     <div filename="${filename}">
-      <div class="ui large images">
-          <div class="ui image">
 
-            <div class="image-container">
-              <img class="ui image" src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="margin:0;">
-              <!-- box overlays inserted here dynamically -->
-            </div>
-            <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
-                <i class="play link blue icon process-single-image" onclick="on_process_image(event)"  title="Process Image"></i>
-                <i class="zoom-in icon" style="cursor:pointer; display:none;" onclick="on_zoom_button(event)" title="Zoom"></i>
-                <i class="plus icon" style="cursor:pointer" onclick="on_add_custom_box_button(event)"  title="Add Custom Box"></i>
-            </div>
-          </div> <!--ui image-->
-
-          <div class="ui large image"> <!--abusing image class to attach slider to the side-->
-            <!-- 450px as in "large images" -->
-            <div class="ui vertical slider" style="width:150px; height:450px;"></div> 
+      <div style="display:flex; justify-content:center;">
+        <div class="ui image" style="width:calc(92vh - 40px); max-width:100%;">
+          <div class="image-container">
+            <img src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="width:100%;" class="unselectable">
+            <!-- box overlays inserted here dynamically -->
           </div>
-      </div> <!--ui large images-->
+          <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
+            <i class="play link blue icon process-single-image" onclick="on_process_image(event)"  title="Process Image"></i>
+            <i class="zoom-in icon" style="cursor:pointer; display:none;" onclick="on_zoom_button(event)" title="Zoom"></i>
+            <i class="plus icon" style="cursor:pointer" onclick="on_add_custom_box_button(event)"  title="Add Custom Box"></i>
+          </div>
+        </div>
+
+        <div>
+          <div class="ui vertical slider" style="width:100%; min-width:100px;"></div> 
+        </div>
+      </div>
 
 
-      <div class="ui two column stackable grid" id="patches_${filename}" style="margin:0px">
+      <div class="ui two column stackable grid" id="patches_${filename}" style="margin:0px;">
           <!-- result-details-template -->
       </div>
     </div>
@@ -77,7 +87,7 @@
     <div class="column result-details" index="${index}" filename="${filename}">
     <div class="ui segment">
     <div class="ui top right attached label icon">
-        <i class="sign-in icon goto-full-image" style="cursor:pointer; display:none;" onclick="on_goto_image(event)" title="Go To Full Image"></i>
+        <i class="sign in icon goto-full-image" style="cursor:pointer; display:none;" onclick="on_goto_image(event)" title="Go To Full Image"></i>
         <i class="check olive icon" style="cursor:pointer" onclick="on_accept_prediction(event)" title="Accept"></i>
         <i class="close red icon" style="cursor:pointer" onclick="on_remove_prediction(event)"  title="Remove"></i>
     </div>
@@ -97,20 +107,7 @@
               <input type="text" class="new-label" placeholder="Other" oninput="on_custom_label_input(event)">
            </th>
          </tr>
-         <!--<tr>
-          <th class="collapsing">
-            <div class="ui fitted checkbox" index="-1">
-              <input type="checkbox"> <label></label>
-            </div>
-          </th>
-          <th colspan="4" class="ui tiny form sixteen wide">
-            <select name="new-label" class="ui fluid search dropdown" oninput="on_custom_label_input(event)">
-              <option value="">Other</option>
-              <option value="1">Fagus</option>
-              <option value="2">Alnus</option>
-            </select>
-          </th>
-         </tr>-->
+         
         </tfoot>
       </table>
     </div>
@@ -139,8 +136,37 @@
                 top:${box[0]*100}%;        left:${box[1]*100}%; 
                 bottom:${100-box[2]*100}%; right:${100-box[3]*100}%;"
          class="box-overlay" index="${index}">
+
+      <div style="position:absolute; display:flex; top:-20px; height:20px; width:calc(100%+4px); left:-2px; right:-2px;
+                  background-color:#ffffffbb; border-style:solid; border-width:0px; border-color:white;">
+        
+        <!--<p onclick="convert_label_into_input(event)"  data-tooltip="${label}" data-position="left center">${label}</p>-->
+        <p onclick="convert_label_into_input(event)" style="color:gray; user-select: none; font-weight:bold; ">${label}</p>
+
+        <select class="ui tiny search dropdown" style="display:none; height:24px;">
+          <option value="0">Other</option>
+          <option value="1">Fagus</option>
+          <option value="2">Alnus</option>
+        </select>
+
+        <i class="close red icon" style="cursor:pointer; margin-top:3px; margin-right:0px; margin-left:auto; padding-left:3px; visibility:hidden;" 
+           title="Remove" onclick="on_remove_prediction(event)"></i>
+
+      </div>
+
+      
+
+      <div class="drag-anchor move-anchor"
+           style="background-color:gray; position:absolute; cursor:move; display:none;
+                  top:calc(50% - 5px);      left:calc(50% - 5px);
+                  height:+10px; width:10px;"></div>
+      <div class="drag-anchor resize-anchor"
+           style="background-color:gray; position:absolute; cursor:se-resize; display:none;
+                  bottom:-5px;  right:-5px;
+                  height:+10px; width:10px;"></div>
     </div>
-    </script>
+
+  </script>
 
 </head>
 
@@ -245,7 +271,7 @@
 
 
 
-<div class="ui container" style="margin-bottom:500px">
+<div class="ui container" style="margin-bottom:500px; padding-bottom:200px">
 <table class="ui basic celled table accordion" id="filetable">
       <thead><tr>
     <th class="six wide" id="file-counter-label">Loaded Files</th>

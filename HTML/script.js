@@ -123,6 +123,9 @@ function build_result_details(filename, result, index){
     //update the global data
     global.input_files[filename].results[index].selected = checkboxindex;
     update_per_file_results(filename, true);
+
+    //update box overlay
+    update_boxlabel(filename, index)
   }});
 
   add_box_overlay_highlight_callback(resultbox);
@@ -141,26 +144,26 @@ function get_selected_label(x){
 }
 
 //returns all selected labels for a file, filtering ''/nonpollen
-function get_selected_labels(filename){
+function get_selected_labels(filename, filter_nonpollen=true){
   var results = global.input_files[filename].results;
   var selectedlabels = Object.values(results).map(get_selected_label);
-  var selectedlabels = selectedlabels.filter(Boolean);
+  if(filter_nonpollen)
+    selectedlabels = selectedlabels.filter(Boolean);
   return selectedlabels;
 }
 
-function get_set_of_all_selected_labels(){
+function get_set_of_all_labels(){
   var all_labels = [];
-  for(f in global.input_files)
-    all_labels.push(...get_selected_labels(f));
-  return new Set(all_labels);
+  for(var f of Object.values(global.input_files)){
+    for(var r of Object.values(f.results)){
+      all_labels = all_labels.concat(Object.keys(r.prediction));
+      all_labels.push(r.custom);
+    }
+  }
+
+  return Array.from(new Set(all_labels)).filter( x => { return !!$.trim(x); } );
 }
 
-function get_list_of_dropdown_label_suggestions(){
-  var result = [];
-  for(l of get_set_of_all_selected_labels())
-    result.push({name:l});
-  return result;
-}
 
 
 function update_number_of_lowconfidence_predictions(){
@@ -213,12 +216,10 @@ function remove_prediction(filename, index){
 
 //callback when the user clicks on the remove button in a result box
 function on_remove_prediction(e){
-  //get the corresponding result details box
-  $resultdetailbox = $(e.target).closest('.result-details')
   //get the filename
-  filename = $resultdetailbox.attr('filename');
+  var filename = $(e.target).closest('[filename]').attr('filename');
   //get the index of prediction within the file
-  index = $resultdetailbox.attr('index');
+  var index = $(e.target).closest('[index]').attr('index');
 
   remove_prediction(filename, index);
 }
@@ -278,7 +279,8 @@ function set_custom_label(filename, index, label){
   //update all related input fields (could be multiple)
   $resultdetailbox.find('[type="text"][class="new-label"]').val(label);
   //set the checkbox (in case it isnt yet)
-  $resultdetailbox.find('.checkbox[index="-1"]').click();
+  $resultdetailbox.find('.checkbox[index="-1"]').checkbox('check');
+  update_boxlabel(filename, index);
 }
 
 //callback when the user enters into the custom label input in a result box
@@ -326,12 +328,18 @@ function add_new_prediction(filename, prediction, box, flag, i, customlabel=unde
 }
 
 
+function remove_all_predictions_for_file(filename){
+  for(var i in global.input_files[filename].results)
+    remove_prediction(filename, i);
+  set_processed(filename, false);
+}
 
 //sends an image to flask and initiates automatic prediction
 function process_file(filename){
   upload_file_to_flask('file_upload', global.input_files[filename].file);
   //send a processing request to python update gui with the results
   return $.get(`/process_image/${filename}`).done(function(data){
+      remove_all_predictions_for_file(filename);
       for(i in data.labels)
           add_new_prediction(filename, data.labels[i], data.boxes[i], data.flags[i], i);
       global.input_files[filename].imagesize=data.imagesize;
@@ -385,9 +393,13 @@ function maybe_create_filelist_item_content(filename){
 
 //called when user clicks on a table row to open the accordion item
 //uploads image to flask, creates accordion ui item
-function on_accordion_open(x){
+function on_accordion_open(){
   var filename = this.find('[filename]').attr('filename');
   maybe_create_filelist_item_content(filename);
+
+  var $trow = $(`tr.ui.title[filename="${filename}"]`)
+  //$('html, body').animate({scrollTop:$trow.offset().top}, 250); //needs a timeout for some reason
+  setTimeout( () => { $('html, body').animate({scrollTop:$trow.offset().top}, 250);}, 1);
 }
 
 //called when user clicks on the "process" button of a single image
@@ -451,16 +463,10 @@ function on_add_custom_box_button(e){
   var $image_container = $etarget.closest('[filename]').find('.image-container')
   var filename         = $etarget.closest('[filename]').attr('filename');
 
-  $etarget.toggleClass('active');
-  if($etarget.hasClass('active')){
-    $etarget.addClass('blue');
-    register_box_draw($image_container, function(box){add_custom_box(filename, box)});
-    $image_container.find('img').css({'cursor':'crosshair'})
+  if(!$etarget.hasClass('active')){
+    activate_custom_box_drawing_mode(filename);
   }else{
-    $etarget.removeClass('blue');
-    $image_container.off('mousedown');
-    $image_container.off('mouseup');
-    $image_container.find('img').css({'cursor':'default'})
+    deactivate_custom_box_drawing_mode(filename);
   }
   e.stopPropagation();
 }

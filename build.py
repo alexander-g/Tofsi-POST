@@ -24,9 +24,9 @@ os.system(f'''pyinstaller --noupx                                   \
 shutil.copytree('HTML',   build_dir+'/HTML')
 shutil.copytree('models', build_dir+'/models')
 if 'linux' in sys.platform:
-    os.symlink('/main/main', build_dir+'/pollennet')
+    os.symlink('main/main', build_dir+'/pollennet')
 else:
-    open(build_dir+'/main.bat', 'w').write(r'main\main.exe')
+    open(build_dir+'/main.bat', 'w').write(r'main\main.exe'+'\npause')
 
 shutil.rmtree('./build')
 #shutil.copyfile('settings.json', build_dir+'/settings.json')
