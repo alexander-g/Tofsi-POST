@@ -77,7 +77,7 @@
       </div>
 
 
-      <div class="ui two column stackable grid" id="patches_${filename}" style="margin:0px;">
+      <div class="ui two column stackable grid" id="patches_${filename}" style="margin:0px; display:none;"> <!-- deactivated -->
           <!-- result-details-template -->
       </div>
     </div>
@@ -138,10 +138,12 @@
          class="box-overlay" index="${index}">
 
       <div style="position:absolute; display:flex; top:-20px; height:20px; width:calc(100%+4px); left:-2px; right:-2px;
-                  background-color:#ffffffbb; border-style:solid; border-width:0px; border-color:white;">
+                  background-color:#ffffffbb; border-style:solid; border-width:0px; border-color:rgb(224,224,224);">
         
-        <!--<p onclick="convert_label_into_input(event)"  data-tooltip="${label}" data-position="left center">${label}</p>-->
-        <p onclick="convert_label_into_input(event)" style="color:gray; user-select: none; font-weight:bold; ">${label}</p>
+        <p onclick="convert_label_into_input(event)" data-position="left center" data-variation="mini"
+           style="color:gray; user-select: none; font-weight:bold;">
+          ${label}
+        </p>
 
         <select class="ui tiny search dropdown" style="display:none; height:24px;">
           <option value="0">Other</option>

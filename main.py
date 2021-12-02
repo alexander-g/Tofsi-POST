@@ -15,7 +15,7 @@ import skimage.io         as skio
 skio.use_plugin('tifffile')
 import skimage.draw       as skdraw
 import skimage.transform  as sktransform
-import skimage.measure    as skmeasure
+#import skimage.measure    as skmeasure
 import skimage.morphology as skmorph
 import skimage.filters    as skfilters
 import skimage.util       as skimgutil
@@ -28,15 +28,16 @@ import tempfile
 
 app        = Flask('Pollen Detector', static_folder=os.path.abspath('./HTML'))
 
-
-TEMPPREFIX = 'pollen_detector_'
-TEMPFOLDER = tempfile.TemporaryDirectory(prefix=TEMPPREFIX)
-print('Temporary Directory: %s'%TEMPFOLDER.name)
-#delete all previous temporary folders if not cleaned up properly
-for tmpdir in glob.glob( os.path.join(os.path.dirname(TEMPFOLDER.name), TEMPPREFIX+'*') ):
-    if tmpdir != TEMPFOLDER.name:
-        print('Removing ',tmpdir)
-        shutil.rmtree(tmpdir)
+is_debug = sys.argv[0].endswith('.py')
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not is_debug:  #to avoid flask starting twice
+    TEMPPREFIX = 'pollen_detector_'
+    TEMPFOLDER = tempfile.TemporaryDirectory(prefix=TEMPPREFIX)
+    print('Temporary Directory: %s'%TEMPFOLDER.name)
+    #delete all previous temporary folders if not cleaned up properly
+    for tmpdir in glob.glob( os.path.join(os.path.dirname(TEMPFOLDER.name), TEMPPREFIX+'*') ):
+        if tmpdir != TEMPFOLDER.name:
+            print('Removing ',tmpdir)
+            shutil.rmtree(tmpdir)
 
 
 
@@ -118,7 +119,6 @@ def add_header(r):
 
 
 
-is_debug = sys.argv[0].endswith('.py')
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not is_debug:  #to avoid flask starting twice
     with app.app_context():
         processing.init()

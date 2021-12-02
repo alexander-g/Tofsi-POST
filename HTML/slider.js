@@ -6,13 +6,13 @@
 function on_image_load_setup_slider(event){
     var $image   = $(event.target);
     var $content = $image.closest('[filename]');
-    console.log($content)
+
     //show and resize the layer selection slider
     var $slider   = $content.find('.ui.slider');
     $slider.slider({
-               min:0, max:5, 
-               onChange: function(){on_slider_change($slider);}
-            });
+        min:0, max:5, 
+        onChange: function(){on_slider_change($slider);}
+    });
 
     //a popup to display the current layer
     $slider.popup({
@@ -52,7 +52,11 @@ function on_slider_change($slider){
     var $img       = $container.find('.image-container').find('img');
     var time       = new Date().getTime()
     var new_src    = (level==0)? `/images/${filename}.jpg?_=${time}` : `/images/${filename}.layer${level-1}.jpg?_=${time}`;
-    $img.attr('src', new_src);
+    fetch(new_src).then(async function(response){
+        if(response.ok){
+            $img.attr('src', URL.createObjectURL(await response.blob()));
+        }
+    })
 
     var popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
     $slider.popup('change content', popup_text);

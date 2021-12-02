@@ -6,6 +6,7 @@ function add_box_overlay(filename, box, index){
     if(label.length==0)
         label = 'Nonpollen';
     var $overlay = $("#box-overlay-template").tmpl( [ {box:box, index:index, label:label} ] );
+    $overlay.find('p').popup({'html':tooltip_text(filename, index)});
     var $parent  = $(`div[filename="${filename}"]`).find('.image-container');
     $parent.append($overlay);
 
@@ -111,6 +112,16 @@ function on_box_hover_out(ev){
 }
 
 
+function tooltip_text(filename, index){
+    var prediction = global.input_files[filename].results[index].prediction;
+    if(Object.keys(prediction).length==0)
+        return ''
+    var txt = '<b>Prediction:</b>';
+    for(var label of Object.keys(prediction))
+        txt += `<br/>${label? label:"Nonpollen"}: ${ (prediction[label]*100).toFixed(0) }%`
+    return txt;
+}
+
 
 function register_box_draw($container, on_box_callback) {
     var $selection = $('<div>').css({"background": "transparent", 
@@ -173,7 +184,7 @@ function activate_custom_box_drawing_mode(filename){
 
     $plusicon.addClass('active');
     $plusicon.addClass('blue');
-    register_box_draw($image_container, function(box){add_custom_box(filename, box)});
+    register_box_draw($image_container, function(box){add_custom_box(filename, box, "???")});
     $image_container.find('img').css({'cursor':'crosshair'})
 }
 
@@ -200,16 +211,16 @@ function convert_label_into_input(e) {
         forceSelection: false, 
         selectOnKeydown: false,
         fullTextSearch:true,
-        action: (t,v,el) => { console.log($label.dropdown('get text')); save(t); },
+        action: (t,v,el) => {  save(t); },
         onHide: ()=>{ save(); },
-
-        values: get_set_of_all_labels().concat(['Nonpollen']).map( v => {return {name:v};} ),
     });
     var $input = $label.closest('.box-overlay').find('.search.dropdown');
+    $input.dropdown('setup menu', {
+        //values: get_set_of_all_labels().concat(['Nonpollen']).sort().map( v => {return {name:v};} ),
+        values: ['Nonpollen'].concat(get_set_of_all_labels().sort()).map( v => {return {name:v};} ),
+    });
     $label.hide();
     $input.show();
-    $input.find('input').val( $label.text() )
-    $input.dropdown('set text', '')
 
     var save = function(txt=''){
         if(txt.length>0){
@@ -230,7 +241,7 @@ function convert_label_into_input(e) {
 
 
 function update_boxlabel(filename, index){
-    var label = get_selected_labels(filename, false)[index];
+    var label = get_selected_label(global.input_files[filename].results[index]);
     if(label=='')
         label = 'Nonpollen';
     

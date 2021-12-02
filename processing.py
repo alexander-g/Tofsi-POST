@@ -12,8 +12,7 @@ import torch, torchvision
 print('PyTorch version: %s'%torch.__version__)
 print('Torchvision version: %s'%torchvision.__version__)
 
-import skimage.measure as skmeasure
-import skimage.morphology as skmorph
+import skimage.util       as skimgutil
 import PIL
 
 detector = None
@@ -46,17 +45,21 @@ def write_as_jpeg(path,x):
     x.save(path)
 
 
-def write_layers_as_jpeg(basepath, stack):
-    assert np.ndim(stack)==4, 'Image is not a s z-stack'
+def write_layers_as_jpeg(basepath, x):
+    assert np.ndim(x)==4, 'Image is not a s z-stack'
 
-    fused = detector.resize_image_for_detection(stack)
+    stack = np.stack([
+        PIL.Image.fromarray(im).resize((480,480), PIL.Image.BILINEAR) for im in x
+    ])
+    fused = detector.fuse_image_stack(stack)
+    fused = skimgutil.img_as_float32(fused)
     fused = PIL.Image.fromarray((fused*255).astype(np.uint8)).convert('RGB')
     fused.save(basepath+'.jpg')
 
-    for i,layer in enumerate(stack):
+    for i,layer in enumerate(x):
         if layer.dtype!=np.uint8:
             layer = (layer*255).astype(np.uint8)
-        layer = PIL.Image.fromarray(layer).convert('RGB').resize(fused.size)
+        layer = PIL.Image.fromarray(layer).convert('RGB').resize([1024,1024])
         layer.save(f'{basepath}.layer{i}.jpg')
 
 def get_imagesize(path):

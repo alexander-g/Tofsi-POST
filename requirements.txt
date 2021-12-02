@@ -5,9 +5,11 @@ torchvision==0.7.0+cpu
 
 cloudpickle==1.2.1
 Flask==1.1.2
-numpy==1.16.4
+numpy==1.16.6
 Pillow==7.1.2
 scikit-image==0.17.2
+imagecodecs==2020.5.30
+tifffile==2020.5.30
 
 setuptools<45.0.0
 pyinstaller==3.5

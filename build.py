@@ -17,6 +17,8 @@ os.system(f'''pyinstaller --noupx                                   \
               --hidden-import=boxlib                                \
               --hidden-import=sklearn.utils._cython_blas            \
               --hidden-import=skimage.io._plugins.tifffile_plugin   \
+              --hidden-import=skimage.feature._orb_descriptor_positions   \
+              --hidden-import=imagecodecs._jpeg8                    \
               --additional-hooks-dir=./hooks                        \
               --distpath {build_dir} main.py''')
 

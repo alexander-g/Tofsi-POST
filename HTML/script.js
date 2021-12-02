@@ -87,6 +87,7 @@ function on_clear_files(){
   global.input_files = {};
   update_inputfiles_list();
   reset_lowconfidence_section()
+  update_file_counter()
 }
 
 
@@ -395,11 +396,29 @@ function maybe_create_filelist_item_content(filename){
 //uploads image to flask, creates accordion ui item
 function on_accordion_open(){
   var filename = this.find('[filename]').attr('filename');
-  maybe_create_filelist_item_content(filename);
+  var maybe_promise = maybe_create_filelist_item_content(filename);
 
+  //scroll to the top of the image/table row
   var $trow = $(`tr.ui.title[filename="${filename}"]`)
-  //$('html, body').animate({scrollTop:$trow.offset().top}, 250); //needs a timeout for some reason
-  setTimeout( () => { $('html, body').animate({scrollTop:$trow.offset().top}, 250);}, 1);
+  if(maybe_promise != undefined){
+    maybe_promise.then( () => {
+      var $img = $(`td.ui.content[filename="${filename}"] img`) 
+      $img.one('load', () => $('html, body').animate({scrollTop:$trow.offset().top}, 250));
+    })
+  } else {
+    //$('html, body').animate({scrollTop:$trow.offset().top}, 250); //needs a timeout for some reason
+    setTimeout( () => { $('html, body').animate({scrollTop:$trow.offset().top}, 250);}, 1);
+  }
+
+  //preload next item
+  setTimeout( () => {
+    var filenames     = Object.keys(global.input_files)
+    var index         = filenames.indexOf(filename);
+    if(index+1 < filenames.length){
+      var next_filename = filenames[index+1];
+      maybe_create_filelist_item_content(next_filename);
+    }
+  }, 200 );
 }
 
 //called when user clicks on the "process" button of a single image
@@ -477,14 +496,12 @@ function add_custom_box(filename, box, label=undefined, index=undefined, already
   //clip
   for(var i in box) box[i] = Math.max(Math.min(1,box[i]),0)
 
-  console.log('NEW BOX', filename, box);
   if(!already_uploaded)
     upload_file_to_flask('file_upload', global.input_files[filename].file);
   
   if(index==undefined)
     var index = 1000+Math.max(0, Math.max(...Object.keys(global.input_files[filename].results)) +1);
   $.get(`/custom_patch/${filename}?box=[${box}]&index=${index}`).done(function(){
-    console.log('custom_patch done');
     set_processed(filename);
     add_new_prediction(filename, {}, box, false, index, label);
     update_per_file_results(filename);
@@ -510,6 +527,13 @@ function load_annotations_from_file(jsonfile, imagefilename){
       var label      = data.shapes[i].label;
       var result     = {prediction:{}, custom:label, selected:-1, box:box, loconf:false};
       global.input_files[imagefilename].results[i] =  result;
+
+      var $contentdiv = $(`.content[filename="${imagefilename}"]`);
+      if($contentdiv[0].innerHTML.trim()){
+        //image already loaded, add box overlays
+        add_custom_box(imagefilename, box, label, i, already_uploaded=true);
+      }
+
     }
     set_processed(imagefilename);
   };

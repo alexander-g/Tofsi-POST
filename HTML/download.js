@@ -67,7 +67,7 @@ const labelme_template = {
 }
 
 const labelme_shape_template = {
-    label: "Myotis bechstenii",
+    label: "???",
     line_color: null,
     fill_color: null,
     points: [ [ 2297.6377952755906, 2039.3700787401574 ],
