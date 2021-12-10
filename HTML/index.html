@@ -61,7 +61,7 @@
       <div style="display:flex; justify-content:center;">
         <div class="ui image" style="width:calc(92vh - 40px); max-width:100%;">
           <div class="image-container">
-            <img src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="width:100%;" class="unselectable">
+            <img src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="width:100%;" class="unselectable" draggable="false" ondragstart="return false;">
             <!-- box overlays inserted here dynamically -->
           </div>
           <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
