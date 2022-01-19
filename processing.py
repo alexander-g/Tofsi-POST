@@ -2,8 +2,8 @@ import os
 #restrict gpu usage
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
-import glob
-import cloudpickle
+import glob, pickle
+#import cloudpickle
 import numpy as np
 import itertools
 import util
@@ -19,7 +19,8 @@ detector = None
 
 def init():
     global detector
-    detector = cloudpickle.load(open('models/pollendetector.cpkl', 'rb'))
+    #detector = cloudpickle.load(open('models/pollendetector.cpkl', 'rb'))
+    detector = pickle.load(open('models/pollendetector.cpkl', 'rb'))
     #load_settings()
 
 def load_image(path):
@@ -27,7 +28,7 @@ def load_image(path):
 
 def process_image(image):
     result = detector.process_image(image)
-    result.labels = [ dict([(k.title(),v) for k,v in L.items()]) for L in result.labels]
+    #result.labels = [ dict([(k.title(),v) for k,v in L.items()]) for L in result.labels]
     return result
 
 def extract_patch(image, box):

@@ -1,9 +1,8 @@
-import webbrowser, os, tempfile, io, sys, glob, shutil
+import webbrowser, os, tempfile, io, sys, glob, shutil, json
 os.environ['PYTORCH_JIT']='0' #needed for packaging
 
 import flask
 from flask import Flask, escape, request
-import json
 
 import processing
 
@@ -13,15 +12,6 @@ import onnxruntime
 import numpy as np
 import skimage.io         as skio
 skio.use_plugin('tifffile')
-import skimage.draw       as skdraw
-import skimage.transform  as sktransform
-#import skimage.measure    as skmeasure
-import skimage.morphology as skmorph
-import skimage.filters    as skfilters
-import skimage.util       as skimgutil
-#import sklearn.utils      as skutils
-
-import tempfile
 
 
 
@@ -75,11 +65,14 @@ def process_image(path):
     image        = processing.load_image(fullpath)
     result       = processing.process_image(image)
 
-    for i,patch in enumerate(result.patches):
-        processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(i,path)), patch)
-    print(result.labels)
-    return flask.jsonify({'labels':result.labels, 'flags':result.flags, 
-                          'boxes':np.array(result.boxes).tolist(), 'imagesize':image.shape })
+    #for i,patch in enumerate(result.patches):
+    #    processing.write_as_jpeg(os.path.join(TEMPFOLDER.name, 'patch_%i_%s.jpg'%(i,path)), patch)
+    print(result['labeled_probabilities'])
+    return flask.jsonify({
+        'labels':    result['labeled_probabilities'],
+        'boxes':     np.array(result['boxes_relative'][ :, (1,0,3,2) ]).tolist(),
+        'imagesize': image.shape
+    })
 
 
 @app.route('/delete_image/<path:path>')

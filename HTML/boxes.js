@@ -22,7 +22,6 @@ function add_box_overlay(filename, box, index){
         var y1     = Math.min(1, ($overlay.position()['top']  + $overlay.outerHeight())/H );
         var x1     = Math.min(1, ($overlay.position()['left'] + $overlay.outerWidth())/W );
 
-        //global.input_files[filename].results[index].box = [x0,y0,x1,y1];  //incorrect ordering
         global.input_files[filename].results[index].box = [y0,x0,y1,x1];
 
         $overlay.css({
@@ -235,7 +234,7 @@ function convert_label_into_input(e) {
         
         $label.show();
         $input.hide();
-      };
+    };
     
     $input.find('input').focus().select();
 }
