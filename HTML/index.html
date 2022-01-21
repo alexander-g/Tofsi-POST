@@ -23,6 +23,7 @@
   <script src="/static/boxes.js">   </script>
   <script src="/static/download.js"></script>
   <script src="/static/slider.js">  </script>
+  <script src="/static/sorting.js">  </script>
 
   <script src="/static/thirdparty/tiff.js">  </script>
   <script src="/static/thirdparty/jszip.min.js"></script>
@@ -48,7 +49,7 @@
         <i class="flag icon" id="flag_${filename}" style="display:block; margin-left:auto; margin-right:auto;"></i>
       </td>-->
     </tr>
-    <tr style="display:none">
+    <tr style="display:none" filename="${filename}">
       <td colspan="5" class="ui content" filename="${filename}">
 
       </td>
@@ -225,12 +226,13 @@
 
 
 <div class="ui container" style="margin-bottom:500px; padding-bottom:200px">
-<table class="ui basic celled table accordion" id="filetable">
-      <thead><tr>
-    <th class="six wide" id="file-counter-label">Loaded Files</th>
-    <th class="nine wide">Detected Pollen</th>
-    <!--<th class="one wide"></th>-->
-    </tr></thead>
+<table class="ui basic celled sortable table accordion" id="filetable">
+  <thead>
+    <tr>
+      <th class="six wide"  onclick="on_sort_by_filename(event)"   title="Sort by filename" id="file-counter-label">Loaded Files</th>
+      <th class="nine wide" onclick="on_sort_by_confidence(event)" title="Sort by confidence">Detected Pollen</th>
+    </tr>
+  </thead>
   <tbody>
     <tr class="ui">
       <td>No Files Selected</td>

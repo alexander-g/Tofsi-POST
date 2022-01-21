@@ -89,14 +89,14 @@ function get_selected_label(x){
   return (x.selected>=0)? Object.keys(x.prediction)[x.selected] : x.custom;
 }
 
-function get_selected_label_and_confidence(x){
-  if(x.selected>=0){
+function get_selected_label_and_confidence(r){
+  if(r.selected>=0){
     return {
-      label:Object.keys(x.prediction)[x.selected], 
-      confidence:Object.values(x.prediction)[x.selected]
+      label:Object.keys(r.prediction)[r.selected], 
+      confidence:Object.values(r.prediction)[r.selected]
     }
   } else {
-    return {label:x.custom, confidence:undefined}
+    return {label:r.custom, confidence:undefined}
   }
 }
 
@@ -300,6 +300,7 @@ function maybe_create_filelist_item_content(filename){
 //uploads image to flask, creates accordion ui item
 function on_accordion_open(){
   var filename = this.find('[filename]').attr('filename');
+  console.log(this, filename)
   var maybe_promise = maybe_create_filelist_item_content(filename);
 
   //scroll to the top of the image/table row
@@ -335,17 +336,18 @@ function on_process_image(e){
 function process_all(){
   var $button = $('#process-all-button')
 
+  var filenames = Object.keys(global.input_files)
   var j=0;
   async function loop_body(){
-    if(j>=Object.values(global.input_files).length || global.cancel_requested ){
+    if(j>=filenames.length || global.cancel_requested ){
       $button.html('<i class="play icon"></i>Process All Images');
       $('#cancel-processing-button').hide();
       return;
     }
     $('#cancel-processing-button').show();
-    $button.html(`Processing ${j}/${Object.values(global.input_files).length}`);
+    $button.html(`Processing ${j}/${filenames.length}`);
 
-    var f = Object.values(global.input_files)[j];
+    var f = global.input_files[filenames[j]];
     if(!f.processed)
       await process_file(f.name);
 
