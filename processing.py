@@ -3,7 +3,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 import glob, pickle
-#import cloudpickle
+import cloudpickle
 import numpy as np
 import itertools
 import util

@@ -3,7 +3,7 @@ global = {
   input_files : {},      //{"banana.JPG": FILE}  //FILE see below
   cancel_requested : false,
 
-  KNOWN_POLLENSPECIES : ['Alnus', 'Betula', 'Corylus', 'Lycopodium', 'Fagus', 'Pinus', 'Secale'],
+  KNOWN_POLLENSPECIES : ['Alnus', 'Betula', 'Carpinus', 'Corylus', 'Lycopodium', 'Fagus', 'Pinus', 'Secale', 'Quercus', 'Wildgras'],
 };
 
 
