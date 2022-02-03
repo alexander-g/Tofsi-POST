@@ -315,6 +315,11 @@ function on_accordion_open(){
     setTimeout( () => { $('html, body').animate({scrollTop:$trow.offset().top}, 250);}, 1);
   }
 
+  read_imagesize_from_tiff(global.input_files[filename].file).then(imagesize => {
+    console.log(imagesize)
+    global.input_files[filename].imagesize = [imagesize.height, imagesize.width];
+  });
+
   //preload next item
   setTimeout( () => {
     var filenames     = Object.keys(global.input_files)
