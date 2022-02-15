@@ -51,9 +51,15 @@ function update_file_counter(){
 //replaces the old global.input_files with a new list of files, updates ui
 function set_input_files(files){
   //global.input_files = {};
-  for(var f of files){
+  for(let f of files){
     f = rename_file(f, full_filename(f))
     global.input_files[f.name] = Object.assign({}, deepcopy(FILE), {name: f.name, file: f});
+
+    //var t0 = Date.now()
+    read_imagesize_from_tiff(global.input_files[f.name].file).then(imagesize => {
+      //console.log(f.name, imagesize)
+      global.input_files[f.name].imagesize = [imagesize.height, imagesize.width];
+    });
   }
   update_inputfiles_list();
   update_file_counter()
@@ -79,7 +85,6 @@ function on_inputfolder_select(input){
 function on_clear_files(){
   global.input_files = {};
   update_inputfiles_list();
-  reset_lowconfidence_section()
   update_file_counter()
 }
 
