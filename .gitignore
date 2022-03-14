@@ -2,3 +2,5 @@ __pycache__
 builds
 tests/logs
 tests/images
+static
+models

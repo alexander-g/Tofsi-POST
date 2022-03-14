@@ -6,7 +6,6 @@ import glob, pickle
 import cloudpickle
 import numpy as np
 import itertools
-import util
 
 import torch, torchvision
 print('PyTorch version: %s'%torch.__version__)

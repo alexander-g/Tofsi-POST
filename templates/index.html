@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+
+{% block htmltitle %}DigIT Pollen Detector{% endblock %}
+
+
+
+
+
+{% block scripts %}
+<script src="/static/util.js">    </script>
+<script src="/static/script.js">  </script>
+<script src="/static/boxes.js">   </script>
+<script src="/static/download.js"></script>
+<script src="/static/slider.js">  </script>
+<script src="/static/sorting.js"> </script>
+<script src="/static/settings.js"></script>
+
+<script src="/static/thirdparty/tiff.js">  </script>
+<script src="/static/thirdparty/jszip.min.js"></script>
+{% endblock scripts%}
+
+
+
+{% block    js_templates %}
+    {% include 'js_templates.html' %}
+{% endblock js_templates %}
+
+
+
+
+{% block main_table %}
+<table class="ui basic celled sortable table accordion" id="filetable">
+    <thead>
+      <tr>
+        <th class="six wide"  onclick="on_sort_by_filename(event)"   title="Sort by filename" id="file-counter-label">Loaded Files</th>
+        <th class="nine wide" onclick="on_sort_by_confidence(event)" title="Sort by confidence">Detected Pollen</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="ui">
+        <td>No Files Selected</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<script>$('.accordion#filetable').accordion({duration:0, onOpening:on_accordion_open});</script>
+<style>.ui.table td.active, .ui.table tr.active { background: #fff!important;  }</style>
+{% endblock main_table %}
+
+
+
+
+{% block    modals %}
+<!-- Settings -->
+<div class="ui tiny modal" id="settings-dialog">
+    <i class="close icon"></i>
+    <div class="header"> Settings </div>
+  
+    <div class="ui form content">
+      <div class="field">
+        <label>Pollen detection model</label>
+        <div class="ui dropdown selection" id="settings-active-model">
+          <input type="hidden" name="active-model">
+          <i class="dropdown icon"></i>
+          <div class="default text">Pollen detection model</div>
+          <div class="menu">
+            <!--<div class="item" data-value="1">model_1</div>
+            <div class="item" data-value="0">model_2</div>-->
+          </div>
+        </div>
+      </div>
+  
+     <div class="actions">
+        <div class="ui negative button">
+          Cancel
+        </div>
+        <div class="ui positive right labeled icon button" id="settings-ok-button">
+          Save
+          <i class="checkmark icon"></i>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock modals %}

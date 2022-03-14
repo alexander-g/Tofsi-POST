@@ -1,0 +1,76 @@
+<template id="filetable-item-template" type="text/x-jQuery-tmpl">
+    <tr class="ui title" filename="${filename}">
+      <td> <i class="dropdown icon"></i><label>${filename}</label></td>
+      <td id="detected_${filename}"></td>
+      <!--<td onclick="on_flag(event);">
+        <i class="flag icon" id="flag_${filename}" style="display:block; margin-left:auto; margin-right:auto;"></i>
+      </td>-->
+    </tr>
+    <tr style="display:none" filename="${filename}">
+      <td colspan="5" class="ui content" filename="${filename}">
+
+      </td>
+    </tr>
+</template>
+
+<template id="filelist-item-content-template" type="text/x-jQuery-tmpl">
+    <div filename="${filename}">
+
+      <div style="display:flex; justify-content:center;">
+        <div class="ui image" style="width:calc(92vh - 40px); max-width:100%;">
+          <div class="image-container">
+            <img src="/images/${filename}.jpg?_=${time}" id="image_${filename}" style="width:100%;" class="unselectable" draggable="false" ondragstart="return false;">
+            <!-- box overlays inserted here dynamically -->
+          </div>
+          <div class="ui top right attached label icon" style="border-top-right-radius: 0;">
+            <i class="play link blue icon process-single-image" onclick="on_process_image(event)"  title="Process Image"></i>
+            <i class="zoom-in icon" style="cursor:pointer; display:none;" onclick="on_zoom_button(event)" title="Zoom"></i>
+            <i class="plus icon" style="cursor:pointer" onclick="on_add_custom_box_button(event)"  title="Add Custom Box"></i>
+          </div>
+        </div>
+
+        <div>
+          <div class="ui vertical slider" style="width:100%; min-width:100px;"></div> 
+        </div>
+      </div>
+    </div>
+</template>
+
+<template id="box-overlay-template" type="text/x-jQuery-tmpl">
+    <div style="position:absolute; 
+                border-style:solid; border-width:2px; border-color:#ffffff;
+                top:${box[0]*100}%;        left:${box[1]*100}%; 
+                bottom:${100-box[2]*100}%; right:${100-box[3]*100}%;"
+         class="box-overlay" index="${index}">
+
+      <div style="position:absolute; display:flex; top:-20px; height:20px; width:calc(100%+4px); left:-2px; right:-2px;
+                  background-color:#ffffffbb; border-style:solid; border-width:0px; border-color:rgb(224,224,224);">
+        
+        <p onclick="convert_label_into_input(event)" data-position="left center" data-variation="mini"
+           style="color:gray; user-select: none; font-weight:bold;">
+          ${label}
+        </p>
+
+        <select class="ui tiny search dropdown" style="display:none; height:24px;">
+          <option value="0">Other</option>
+          <option value="1">Fagus</option>
+          <option value="2">Alnus</option>
+        </select>
+
+        <i class="close red icon" style="cursor:pointer; margin-top:3px; margin-right:0px; margin-left:auto; padding-left:3px; visibility:hidden;" 
+           title="Remove" onclick="on_remove_prediction(event)"></i>
+
+      </div>
+
+      
+
+      <div class="drag-anchor move-anchor"
+           style="background-color:gray; position:absolute; cursor:move; display:none;
+                  top:calc(50% - 5px);      left:calc(50% - 5px);
+                  height:+10px; width:10px;"></div>
+      <div class="drag-anchor resize-anchor"
+           style="background-color:gray; position:absolute; cursor:se-resize; display:none;
+                  bottom:-5px;  right:-5px;
+                  height:+10px; width:10px;"></div>
+    </div>
+</template>
