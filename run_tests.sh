@@ -2,12 +2,12 @@
 
 
 
-sudo docker run -ti --rm \
-                --network=host  \
-                -v `pwd`:/root/workspace:ro \
-                -v `pwd`/tests/logs:/root/latest_logs \
-                myseleniumbase \
-                $@
+if [[ $@ = '--build-docker' ]]; then
+    echo "Building docker";
+    base/run_tests.sh --build-docker
+    sudo docker build --rm -f tests/docker/Dockerfile -t pollen_test_docker  ./
+    sudo docker image prune -f
 
-#TODO: add Dockerfile
-#TODO: start app and run tests (if not specified to only start docker)
+else
+    DOCKER_IMAGE=pollen_test_docker $(dirname ${BASH_SOURCE:-$0})/base/run_tests.sh $@
+fi

@@ -7,33 +7,35 @@ import cloudpickle
 import numpy as np
 import itertools
 
-import torch, torchvision
-print('PyTorch version: %s'%torch.__version__)
-print('Torchvision version: %s'%torchvision.__version__)
+import torch, torchvision, onnxruntime
+print(f'PyTorch version:     {torch.__version__}')
+print(f'Torchvision version: {torchvision.__version__}')
+print(f'ONNXruntime version: {onnxruntime.__version__}')
 
 import skimage.util       as skimgutil
 import PIL
 
 detector = None
 
-def init():
+def init(settings):
+    load_model(settings)
+
+def load_model(settings):
     global detector
-    #detector = cloudpickle.load(open('models/pollendetector.cpkl', 'rb'))
-    detector = pickle.load(open('models/pollendetector.cpkl', 'rb'))
-    #load_settings()
+    settings  = settings.get_settings()
+    modelname = settings['active_model']
+    if modelname is None:
+        modelname = settings['models'][0]
+    path = f"models/{modelname}.pkl"
+    detector = pickle.load(open(path, 'rb'))
+    return detector
 
 def load_image(path):
     return detector.load_image(path)
 
 def process_image(image):
-    result = detector.process_image(image)
-    #result.labels = [ dict([(k.title(),v) for k,v in L.items()]) for L in result.labels]
+    result   = detector.process_image(image)
     return result
-
-def extract_patch(image, box):
-    box = np.clip(box, 0, 1)
-    return detector.extract_patch(image, box)
-
 
 def write_as_jpeg(path,x):
     if len(x.shape)==2:
@@ -44,12 +46,13 @@ def write_as_jpeg(path,x):
     x = PIL.Image.fromarray(x).convert('RGB')
     x.save(path)
 
-
 def write_layers_as_jpeg(basepath, x):
-    assert np.ndim(x)==4, 'Image is not a s z-stack'
+    assert np.ndim(x)==4, 'Image is not a z-stack'
 
+    H,W   = x.shape[1:3]
+    ratio = H/W
     stack = np.stack([
-        PIL.Image.fromarray(im).resize((480,480), PIL.Image.BILINEAR) for im in x
+        PIL.Image.fromarray(im).resize([420,int(420*ratio)], PIL.Image.BILINEAR) for im in x
     ])
     fused = detector.fuse_image_stack(stack)
     fused = skimgutil.img_as_float32(fused)
@@ -59,8 +62,7 @@ def write_layers_as_jpeg(basepath, x):
     for i,layer in enumerate(x):
         if layer.dtype!=np.uint8:
             layer = (layer*255).astype(np.uint8)
-        layer = PIL.Image.fromarray(layer).convert('RGB').resize([1024,1024])
+        layer = PIL.Image.fromarray(layer).convert('RGB').resize([1024,int(1024*ratio)])
         layer.save(f'{basepath}.layer{i}.jpg')
 
-def get_imagesize(path):
-    return PIL.Image.open(path).size
+

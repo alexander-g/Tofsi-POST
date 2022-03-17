@@ -1,6 +1,7 @@
-from base.base.app import App as BaseApp
+from base.backend.app import App as BaseApp
+from . import settings
 
-import tempfile, glob, os, shutil, sys
+import tempfile, glob, os, shutil, sys, webbrowser
 import flask
 import numpy as np
 
@@ -11,12 +12,16 @@ from . import processing
 class App(BaseApp):
     def __init__(self, *args, **kw):
         #TODO: move into base package
-        if os.environ.get("WERKZEUG_RUN_MAIN") != 'true':
+        is_debug         = sys.argv[0].endswith('.py')
+        is_second_start  = (os.environ.get("WERKZEUG_RUN_MAIN") == 'true')
+        is_pytest_mode   = (os.environ.get('PYTEST_CURRENT_TEST',None) is not None)
+        is_reloader      = (is_debug and not is_second_start) and not is_pytest_mode
+        if is_reloader:
             flask.Flask.__init__(self, 'reloader', *args,**kw)
             return
         
-        super().__init__(*args,**kw)
-
+        super().__init__(*args, **kw)
+        self.settings = settings.Settings()
 
         #TODO: make this a cache folder inside the main folder
         TEMPPREFIX = 'pollen_detector_'
@@ -66,26 +71,10 @@ class App(BaseApp):
                 os.remove(fullpath)
             return 'OK'
         
-        
-        @self.after_request
-        def add_header(r):
-            """
-            Add headers to both force latest IE rendering engine or Chrome Frame,
-            and also to cache the rendered page for 10 minutes.
-            """
-            r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-            r.headers["Pragma"] = "no-cache"
-            r.headers["Expires"] = "0"
-            r.headers['Cache-Control'] = 'public, max-age=0'
-            return r
-
-
-        processing.init()
+        processing.init(self.settings)
 
         #TODO:
-        # if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not is_debug:  #to avoid flask starting twice
-        #     with app.app_context():
-        #         processing.init()
-        #         if not is_debug:
-        #             print('Flask started')
-        #             webbrowser.open('http://localhost:5000', new=2)
+        if not is_debug:
+            with self.app_context():
+                print('Flask started')
+                webbrowser.open('http://localhost:5000', new=2)

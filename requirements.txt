@@ -1,12 +1,9 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
-#--find-links https://dl.fbaipublicfiles.com/detectron2/wheels/cpu/torch1.6/index.html
-#torch==1.6.0+cpu
-#torchvision==0.7.0+cpu
 torch==1.8.1+cpu
 torchvision==0.9.1+cpu 
 
 cloudpickle==2.0.0
-Flask==1.1.2
+Flask==2.0.3
 numpy==1.16.6
 Pillow==7.1.2
 scikit-image==0.17.2

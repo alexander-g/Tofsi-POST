@@ -8,16 +8,16 @@
 
 
 {% block scripts %}
-<script src="/static/util.js">    </script>
-<script src="/static/script.js">  </script>
-<script src="/static/boxes.js">   </script>
-<script src="/static/download.js"></script>
-<script src="/static/slider.js">  </script>
-<script src="/static/sorting.js"> </script>
-<script src="/static/settings.js"></script>
+<script src="util.js">    </script>
+<script src="script.js">  </script>
+<script src="boxes.js">   </script>
+<script src="download.js"></script>
+<script src="slider.js">  </script>
+<script src="sorting.js"> </script>
+<script src="settings.js"></script>
 
-<script src="/static/thirdparty/tiff.js">  </script>
-<script src="/static/thirdparty/jszip.min.js"></script>
+<script src="thirdparty/tiff.js">  </script>
+<script src="thirdparty/jszip.min.js"></script>
 {% endblock scripts%}
 
 
@@ -49,38 +49,3 @@
 <style>.ui.table td.active, .ui.table tr.active { background: #fff!important;  }</style>
 {% endblock main_table %}
 
-
-
-
-{% block    modals %}
-<!-- Settings -->
-<div class="ui tiny modal" id="settings-dialog">
-    <i class="close icon"></i>
-    <div class="header"> Settings </div>
-  
-    <div class="ui form content">
-      <div class="field">
-        <label>Pollen detection model</label>
-        <div class="ui dropdown selection" id="settings-active-model">
-          <input type="hidden" name="active-model">
-          <i class="dropdown icon"></i>
-          <div class="default text">Pollen detection model</div>
-          <div class="menu">
-            <!--<div class="item" data-value="1">model_1</div>
-            <div class="item" data-value="0">model_2</div>-->
-          </div>
-        </div>
-      </div>
-  
-     <div class="actions">
-        <div class="ui negative button">
-          Cancel
-        </div>
-        <div class="ui positive right labeled icon button" id="settings-ok-button">
-          Save
-          <i class="checkmark icon"></i>
-        </div>
-      </div>
-    </div>
-</div>
-{% endblock modals %}

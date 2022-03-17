@@ -358,8 +358,8 @@ function process_all(){
     $button.html(`Processing ${j}/${filenames.length}`);
 
     var f = global.input_files[filenames[j]];
-    if(!f.processed)
-      await process_file(f.name);
+    //if(!f.processed) //always processing
+    await process_file(f.name);
 
     j+=1;
     setTimeout(loop_body, 1);

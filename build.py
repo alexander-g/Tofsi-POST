@@ -23,7 +23,7 @@ os.system(f'''pyinstaller --noupx                                   \
               --distpath {build_dir} main.py''')
 
 
-shutil.copytree('HTML',   build_dir+'/HTML')
+shutil.copytree('static',   build_dir+'/static')
 shutil.copytree('models', build_dir+'/models')
 if 'linux' in sys.platform:
     os.symlink('main/main', build_dir+'/pollennet')
