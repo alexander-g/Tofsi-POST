@@ -1,3 +1,47 @@
+<!--{{warning}}-->
+
+{% from   'base/top_menu.html'          import top_menu %}
+{% import 'base/modals.html'            as     base_modals %}
+{% from   'base/main_container.html'    import main_container %}
+{% from   'pollen/js_templates.html'    import filetable_row_template %}
+{# {% import 'pollen/modals.html'       as     pollen_modals %} #}
+{% from   'base/training_tab.html'      import training_tab %}
+
+{% set app = "PollenApp" %}
+
+<html>
+    <title>DigIT Pollen Detector</title>
+<head>
+    {# TODO: indent #}
+    {% include 'base/scripts.html'   %}
+    {% include 'pollen/scripts.html'  %}
+
+    {{ filetable_row_template(app)  | indent }}
+</head>
+
+
+<body onload="{{app}}.init()">
+
+    {{ top_menu(app)             | indent }}
+
+    {{ main_container(
+        app, 
+        training_tab = training_tab)
+    | indent }}
+
+  {# {{ pollen_modals.modal_settings()          | indent }} #}
+    {{ base_modals.modal_settings()               | indent }}
+    {{ base_modals.modal_training_progress()      | indent }}
+    {{ base_modals.modal_loading_files_progress() | indent }}
+
+</body>
+</html>
+
+
+
+{#
+
+
 {% extends "base.html" %}
 
 
@@ -49,3 +93,4 @@
 <style>.ui.table td.active, .ui.table tr.active { background: #fff!important;  }</style>
 {% endblock main_table %}
 
+#}

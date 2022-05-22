@@ -1,3 +1,55 @@
+{% import   'base/js_templates.html'  as base_js_templates %}
+{% import   'base/content_menu.html'  as base_content_menu %}
+
+
+{% macro zstack_slider() %}
+<div>
+  <div class="ui vertical slider zstack-slider" style="width:100%; min-width:50px;"></div> 
+</div>
+<script>ZStackSlider.setup_slider("${filename}")</script>
+{% endmacro %}
+
+
+
+{% macro pollen_filetable_content(app)%}
+<div class="filetable-content" style="display:none">
+    {{ base_content_menu.content_menu(
+            callback_on_process        = app+".Detection.on_process_image",
+            callback_apply_corrections = None,
+            callback_new_box           = app+".Boxes.on_draw_new_box",
+            callback_download          = app+".Download.on_single_item_download_click",
+            edit_segmentation_item     = None,
+            view_menu_kwargs           = {
+                'show_results_layout': False,
+                'brightness_max':      None
+            }
+    ) | indent }}
+
+    <div class="image-container">
+        {{ base_js_templates.content_image(
+            name           = "input",  
+            overlay        = None,
+            viewcontrols   = None,
+            extras         = zstack_slider()
+        ) | indent(8) }}
+        {{ base_js_templates.progress_dimmer() }}
+        
+    </div>
+</div>
+{% endmacro %}
+
+
+{% macro filetable_row_template(app) %}
+    {{ base_js_templates.filetable_row_template(app, content=pollen_filetable_content) }}
+    {# TODO: {{ boxes.boxes_overlay_templates() }} #}
+{% endmacro %}
+
+
+
+
+{#
+
+
 <template id="filetable-item-template" type="text/x-jQuery-tmpl">
     <tr class="ui title" filename="${filename}">
       <td> <i class="dropdown icon"></i><label>${filename}</label></td>
@@ -74,3 +126,5 @@
                   height:+10px; width:10px;"></div>
     </div>
 </template>
+
+#}
