@@ -1,5 +1,6 @@
 {% import   'base/js_templates.html'  as base_js_templates %}
 {% import   'base/content_menu.html'  as base_content_menu %}
+{% import   'base/boxes.html'         as base_boxes %}
 
 
 {% macro zstack_slider() %}
@@ -16,7 +17,7 @@
     {{ base_content_menu.content_menu(
             callback_on_process        = app+".Detection.on_process_image",
             callback_apply_corrections = None,
-            callback_new_box           = app+".Boxes.on_draw_new_box",
+            callback_new_box           = app+".Boxes.on_draw_new_box_button",
             callback_download          = app+".Download.on_single_item_download_click",
             edit_segmentation_item     = None,
             view_menu_kwargs           = {
@@ -28,7 +29,7 @@
     <div class="image-container">
         {{ base_js_templates.content_image(
             name           = "input",  
-            overlay        = None,
+            overlay        = base_boxes.boxes_overlay(),
             viewcontrols   = None,
             extras         = zstack_slider()
         ) | indent(8) }}
@@ -41,7 +42,7 @@
 
 {% macro filetable_row_template(app) %}
     {{ base_js_templates.filetable_row_template(app, content=pollen_filetable_content) }}
-    {# TODO: {{ boxes.boxes_overlay_templates() }} #}
+    {{ base_boxes.boxes_overlay_template() }}
 {% endmacro %}
 
 

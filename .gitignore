@@ -4,3 +4,4 @@ tests/logs
 tests/images
 static
 models
+cache
