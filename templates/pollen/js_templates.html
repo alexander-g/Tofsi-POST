@@ -42,7 +42,7 @@
 
 {% macro filetable_row_template(app) %}
     {{ base_js_templates.filetable_row_template(app, content=pollen_filetable_content) }}
-    {{ base_boxes.boxes_overlay_template() }}
+    {{ base_boxes.boxes_overlay_template(app) }}
 {% endmacro %}
 
 

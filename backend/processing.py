@@ -15,26 +15,17 @@ print(f'ONNXruntime version: {onnxruntime.__version__}')
 import skimage.util       as skimgutil
 import PIL
 
-detector = None
+from base.backend import GLOBALS
 
-def init(settings):
-    load_model(settings)
+def load_image(imagepath):
+    return PIL.Image.open(imagepath) / np.float32(255)
 
-def load_model(settings):
-    global detector
-    settings  = settings.get_settings()
-    modelname = settings['active_model']
-    if modelname is None:
-        modelname = settings['models'][0]
-    path = f"models/{modelname}.pkl"
-    detector = pickle.load(open(path, 'rb'))
-    return detector
-
-def load_image(path):
-    return detector.load_image(path)
-
-def process_image(image):
-    result   = detector.process_image(image)
+def process_image(imagepath, settings):
+    with GLOBALS.processing_lock:
+        detector = settings.models['detection']
+        result   = detector.process_image(imagepath)
+    W,H                      = PIL.Image.open(imagepath).size
+    result['boxes_absolute'] = result['boxes_relative'] * (W,H,W,H)
     return result
 
 def write_as_jpeg(path,x):
