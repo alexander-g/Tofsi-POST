@@ -2,10 +2,8 @@
 
 {% from   'base/top_menu.html'          import top_menu %}
 {% import 'base/modals.html'            as     base_modals %}
-{% from   'base/main_container.html'    import main_container %}
 {% from   'pollen/js_templates.html'    import filetable_row_template %}
-{# {% import 'pollen/modals.html'       as     pollen_modals %} #}
-{% from   'base/training_tab.html'      import training_tab %}
+{% from   'pollen/main_container.html'  import pollen_main_container %}
 
 {% set app = "PollenApp" %}
 
@@ -22,14 +20,10 @@
 
 <body onload="{{app}}.init()">
 
-    {{ top_menu(app)             | indent }}
+    {{ top_menu(app)                              | indent }}
 
-    {{ main_container(
-        app, 
-        training_tab = training_tab)
-    | indent }}
+    {{ pollen_main_container(app)                 | indent }}
 
-  {# {{ pollen_modals.modal_settings()          | indent }} #}
     {{ base_modals.modal_settings()               | indent }}
     {{ base_modals.modal_training_progress()      | indent }}
     {{ base_modals.modal_loading_files_progress() | indent }}
@@ -37,60 +31,3 @@
 </body>
 </html>
 
-
-
-{#
-
-
-{% extends "base.html" %}
-
-
-{% block htmltitle %}DigIT Pollen Detector{% endblock %}
-
-
-
-
-
-{% block scripts %}
-<script src="util.js">    </script>
-<script src="script.js">  </script>
-<script src="boxes.js">   </script>
-<script src="download.js"></script>
-<script src="slider.js">  </script>
-<script src="sorting.js"> </script>
-<script src="settings.js"></script>
-
-<script src="thirdparty/tiff.js">  </script>
-<script src="thirdparty/jszip.min.js"></script>
-{% endblock scripts%}
-
-
-
-{% block    js_templates %}
-    {% include 'js_templates.html' %}
-{% endblock js_templates %}
-
-
-
-
-{% block main_table %}
-<table class="ui basic celled sortable table accordion" id="filetable">
-    <thead>
-      <tr>
-        <th class="six wide"  onclick="on_sort_by_filename(event)"   title="Sort by filename" id="file-counter-label">Loaded Files</th>
-        <th class="nine wide" onclick="on_sort_by_confidence(event)" title="Sort by confidence">Detected Pollen</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="ui">
-        <td>No Files Selected</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<script>$('.accordion#filetable').accordion({duration:0, onOpening:on_accordion_open});</script>
-<style>.ui.table td.active, .ui.table tr.active { background: #fff!important;  }</style>
-{% endblock main_table %}
-
-#}

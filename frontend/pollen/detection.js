@@ -14,12 +14,15 @@ PollenDetection = class extends BaseDetection {
             const pollenresults            = new PollenResults(results['labels'], results['boxes'])
             GLOBAL.files[filename].results = pollenresults
             App.Boxes.refresh_boxes(filename)
-            //for(const [i, box] of Object.entries(results.boxes)){
-            //    App.Boxes.add_box_overlay(filename, box, pollenresults.labels[i])
-            //}
+            
+            $(`.table-row[filename="${filename}"] td:nth-of-type(2)`).text( this.format_results_for_table(pollenresults) )
         }
 
         this.set_processed(filename, clear)
+    }
+
+    static format_results_for_table(pollenresults){
+        return pollenresults.labels.join(', ')         //TODO: confidence
     }
 }
 
