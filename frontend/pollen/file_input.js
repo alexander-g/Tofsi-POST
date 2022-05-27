@@ -13,8 +13,6 @@ PollenFileInput = class extends BaseFileInput{
     
     //override
     static async load_result(filename, resultfiles){
-        console.log('Loading result: ', resultfiles)
-
         const promise = new Promise(async (resolve, reject) => {
             const reader  = new FileReader();
             reader.onload = async function(){

@@ -15,14 +15,33 @@ PollenDetection = class extends BaseDetection {
             GLOBAL.files[filename].results = pollenresults
             App.Boxes.refresh_boxes(filename)
             
-            $(`.table-row[filename="${filename}"] td:nth-of-type(2)`).text( this.format_results_for_table(pollenresults) )
+            $(`.table-row[filename="${filename}"] td:nth-of-type(2)`).html( this.format_results_for_table(pollenresults) )
         }
 
         this.set_processed(filename, clear)
     }
 
     static format_results_for_table(pollenresults){
-        return pollenresults.labels.join(', ')         //TODO: confidence
+        const hiconf_threshold = 0.7                                                                                                //FIXME hardcoded threshold
+        const n     = pollenresults.labels.length;
+        let   texts = []
+        for (let i = 0; i < n; i++) {
+            let   label      = pollenresults.labels[i];
+            const confidence = Object.values(pollenresults.predictions[i])[0]
+            if(!label)
+                if(confidence > hiconf_threshold)
+                    //filter high-confidence non-pollen
+                    continue;
+                else
+                    label = 'Nonpollen'
+            
+            let   text       = `${label}(${(confidence*100).toFixed(0)}%)`
+            if(confidence > hiconf_threshold)
+                  text       = `<b>${text}</b>`
+            texts = texts.concat(text)
+        }
+        const full_text = texts.join(', ') || '-'
+        return full_text
     }
 }
 
