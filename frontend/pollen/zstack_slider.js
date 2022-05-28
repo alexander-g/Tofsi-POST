@@ -39,21 +39,18 @@ ZStackSlider = class {
         //$slider.popup('reposition');
     }
 
-    static on_slider_change($slider){
-        var level = $slider.slider('get value');
+    static async on_slider_change($slider){
+        const level      = $slider.slider('get value');
 
-        var $container = $slider.closest('[filename]');
-        var filename   = $container.attr('filename');
-        var $img       = $container.find('.image-container').find('img');
-        var time       = new Date().getTime()
-        var new_src    = (level==0)? `/images/${filename}.jpg?_=${time}` : `/images/${filename}.layer${level-1}.jpg?_=${time}`;      //TODO: url_for_image()
-        fetch(new_src).then(async function(response){
-            if(response.ok){
-                $img.attr('src', URL.createObjectURL(await response.blob()));
-            }
-        })
+        const $container = $slider.closest('[filename]');
+        const filename   = $container.attr('filename');
+        const $img       = $container.find('img.input-image')
 
-        var popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
+        const file       = GLOBAL.files[filename]
+        const blob       = await load_tiff_file(file, level-1)
+        set_image_src($img, blob)
+
+        const popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
         $slider.popup('change content', popup_text);
         $slider.popup('reposition');
         
