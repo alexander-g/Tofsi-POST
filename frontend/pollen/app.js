@@ -4,6 +4,7 @@ PollenApp = class extends BaseApp {
     static Download      =    PollenDownload;
     static FileInput     =    PollenFileInput;
     static Boxes         =    PollenBoxes;
+    static Training      =    PollenTraining;
 }
 
 
