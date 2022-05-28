@@ -2,22 +2,7 @@
 PollenDownload = class extends BaseDownload {
     //override
     static zipdata_for_file(filename){
-        const f  = GLOBAL.files[filename];
-        if(!f.cell_results && !f.treering_results)
-            return undefined;
-        
-        const zipdata  = {};
-        if(f.cell_results)
-            zipdata[f.cell_results.cells.name] = f.cell_results.cells;
-        if(f.treering_results){
-            zipdata[f.treering_results.segmentation.name]   = f.treering_results.segmentation;
-            zipdata[`${filename}.tree_ring_statistics.csv`] = this.treering_csv_data(filename);
-        }
-        if(f.association_result){
-            zipdata[f.association_result.ring_map.name] = f.association_result.ring_map;
-            zipdata[`${filename}.cell_statistics.csv`]  = this.cell_csv_data(filename)
-        }
-        return zipdata;
+        console.error('Not implemented')
     }
 
     //override
@@ -33,6 +18,42 @@ PollenDownload = class extends BaseDownload {
         if(combined_csv.length > 0)
             zipdata['statistics.csv'] = combined_csv;
         return zipdata;
+    }
+
+    //Download All -> Download CSV
+    static on_download_csv(event){
+        const filenames = Object.keys(GLOBAL.files)
+        const data      = this.zipdata_for_files(filenames)
+        const csv       = data['statistics.csv']
+        if(!!csv)
+            download_text('statistics.csv', csv)
+    }
+
+    //Download All -> Download Annotations
+    static on_download_json(event){
+        let zipdata = {}
+        for(const [filename, f] of Object.entries(GLOBAL.files)){
+            if(!f.results)
+                continue;
+    
+            let jsondata = deepcopy(LABELME_TEMPLATE);
+            jsondata.imagePath = filename
+    
+            for(const [i,box] of Object.entries(f.results.boxes)){
+                const label      = f.results.labels[i];
+                if(label.trim()=="")
+                    continue;
+                let jsonshape    = deepcopy(LABELME_SHAPE_TEMPLATE);
+                jsonshape.label  = label;
+                jsonshape.points = [ [box[0], box[1]], [box[2], box[3]] ];
+                jsondata.shapes.push(jsonshape);
+            }
+    
+            const jsonfilename = filename.split('.').slice(0, -1).join('.')+'.json'
+            zipdata[jsonfilename] = new Blob([JSON.stringify(jsondata, null, 2)], {type : 'application/json'})
+        }
+        if(Object.keys(zipdata).length > 0)
+            download_zip('annotations.zip', zipdata)
     }
 
     static csv_data_for_file(filename, include_header=true){
@@ -88,11 +109,7 @@ PollenDownload = class extends BaseDownload {
 }
 
 
-
-
-//TODO: labelme json download
-
-const labelme_template = {
+const LABELME_TEMPLATE = {
     //version: "3.16.2",
     flags: {},
     shapes: [    ],
@@ -102,7 +119,7 @@ const labelme_template = {
     imageData: null
 }
 
-const labelme_shape_template = {
+const LABELME_SHAPE_TEMPLATE = {
     label: "???",
     line_color: null,
     fill_color: null,
@@ -112,39 +129,3 @@ const labelme_shape_template = {
     flags: {}
 }
 
-
-function on_download_labelme(){
-    var zip = new JSZip();
-    var n = 0
-    for(filename of Object.keys(global.input_files)){
-        var f = global.input_files[filename];
-        if(!f.processed)
-            continue;
-
-        var jsondata = deepcopy(labelme_template);
-        jsondata.imagePath = file_basename(filename);
-        height = f.imagesize.length==4? f.imagesize[1] : f.imagesize[0];
-        width  = f.imagesize.length==4? f.imagesize[2] : f.imagesize[1];
-
-        for(r of Object.values(f.results)){
-            var label        = get_selected_label(r);
-            if(label.trim()=="")
-                continue;
-            var jsonshape    = deepcopy(labelme_shape_template);
-            jsonshape.label  = label;
-            jsonshape.points = [ [r.box[1]*width, r.box[0]*height], [r.box[3]*width, r.box[2]*height] ];
-            jsondata.shapes.push(jsonshape);
-        }
-
-        var jsonfilename = filename.replace(new RegExp(PATH_SEPARATOR, 'g'), '/').split('.').slice(0, -1).join('.')+'.json'
-        zip.file(jsonfilename, new Blob([JSON.stringify(jsondata, null, 2)], {type : 'application/json'}), {binary:true});
-        n++;
-    }
-
-    if(n==0)
-        return;
-    
-    zip.generateAsync({type:"blob"}).then( blob => {
-        downloadBlob(  'annotations.zip', blob  );
-    } );
-}

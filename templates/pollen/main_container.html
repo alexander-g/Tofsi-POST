@@ -3,10 +3,25 @@
 {% from   'pollen/training_tab.html'    import training_tab as pollen_training_tab %}
 
 
+{% macro download_menu(app) %}
+<div class="ui simple dropdown download-all item" onclick="">
+    <i class="download icon"></i>
+    Download All
+    <div class="menu">
+        <div class="item" onclick="{{app}}.Download.on_download_csv(event)" >Download CSV</div>
+        <div class="item" onclick="{{app}}.Download.on_download_json(event)">Download Annotations</div>
+    </div>
+</div>
+{% endmacro %}
+
 {% macro pollen_main_container(app) %}
     {{ base_main_container(
         app, 
-        detection_tab = base_detection_tab(app, main_table = base_main_table(extra_columns=['Detected Pollen'])),
+        detection_tab = base_detection_tab(
+            app, 
+            main_table              = base_main_table(extra_columns=['Detected Pollen']),
+            filetable_download_menu = download_menu(app)
+        ),
         training_tab  = pollen_training_tab(app))
     | indent }}
 {% endmacro %}
