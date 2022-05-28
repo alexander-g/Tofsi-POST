@@ -24,9 +24,9 @@ PollenDownload = class extends BaseDownload {
     static zipdata_for_files(filenames){
         //var zipdata      = super.zipdata_for_files(filenames)
         let zipdata      = {}
-        var combined_csv = ''
-        for(var i in filenames){
-            var single_csv = this.csv_data_for_file(filenames[i], i==0)
+        let combined_csv = ''
+        for(const i in filenames){
+            let single_csv = this.csv_data_for_file(filenames[i], i==0)
             if(single_csv!=undefined)
                 combined_csv += single_csv;
         }
@@ -36,8 +36,8 @@ PollenDownload = class extends BaseDownload {
     }
 
     static csv_data_for_file(filename, include_header=true){
-        const results = Object.values(GLOBAL.files).map( f => f.results ).filter(Boolean)
-        const known_pollenspecies = this.collect_known_species_from_results(results);
+        const all_results = Object.values(GLOBAL.files).map( f => f.results ).filter(Boolean)
+        const known_pollenspecies = this.collect_known_species_from_results(all_results);
         const header = [
             'Filename', 
             ...known_pollenspecies,
@@ -49,8 +49,11 @@ PollenDownload = class extends BaseDownload {
             return;
 
         let csvtxt = ''
-        for(const [i, labels] of Object.entries(f.results.labels)){
-            const row = this.format_resultrow(labels, filename, i, known_pollenspecies);
+        if(include_header)
+            csvtxt += header.join(',')+'\n'
+        for(const [i, prediction] of Object.entries(f.results.predictions)){
+            const label = f.results.labels[i]
+            const row   = this.format_prediction(prediction, filename, i, label, known_pollenspecies);
             //sanity check
             if(header.length != row.length){
                 console.error('CSV data length mismatch:', header, row)
@@ -63,66 +66,31 @@ PollenDownload = class extends BaseDownload {
     }
 
     static collect_known_species_from_results(results){
-        const label_probs     = results.map( r => r.labels ).flat()
-        const all_labels      = label_probs.map( Object.keys ).flat()
-        const unique_labels   = [...new Set(all_labels)].sort()
-        return unique_labels;
+        const predictions     = results.map( r => r.predictions ).flat()
+        const all_labels      = predictions.map( Object.keys ).flat()
+        let   unique_labels   = new Set(all_labels)
+              unique_labels.delete('')
+              unique_labels.delete('Other')
+        return [...unique_labels].sort();
     }
 
-    static format_resultrow(labels, filename, i, known_pollenspecies){
+    static format_prediction(prediction, filename, i, selectedlabel, known_pollenspecies){
         let row = [`${filename}-${i}`]
         for(const pollenspecies of known_pollenspecies.concat(['Other'])){
-            const confidence = labels[pollenspecies];
-            row = row.concat(confidence? (confidence*100).toFixed(0)+'%' : "   ");
+            const confidence     = prediction[pollenspecies];
+            const confidence_str = (confidence? (confidence*100).toFixed(0)+'%' : "")
+            row.push( confidence_str.padStart(4) );
         }
-        let selectedlabel = get_selected_label(result);
-            selectedlabel = selectedlabel? selectedlabel : "Nonpollen";
-            row           = row.concat(selectedlabel)
-        return row;
-    }
-}
-
-
-
-
-
-
-//file format requested by nia
-async function on_download_csv(){
-    function format_resultrow(result, filename, i){
-        var row = `${filename}-${i},`;
-        for(var pollenspecies of global.KNOWN_POLLENSPECIES.concat(['Other'])){
-            var confidence = result.prediction[pollenspecies];
-            row += confidence? (confidence*100).toFixed(0)+'%' : "   ";
-            row += ",";
-        }
-        var selectedlabel = get_selected_label(result);
         selectedlabel = selectedlabel? selectedlabel : "Nonpollen";
-        row += selectedlabel += ';\n';
+        row.push(selectedlabel)
         return row;
     }
-
-    var file_groups = group_filenames_by_dirname( Object.keys(global.input_files) )
-    for(var group of Object.keys(file_groups)){
-        var csvtext = '';
-        for(var filename of file_groups[group]){
-            var results = Object.values(global.input_files[filename].results);
-            for(var i in results){
-                csvtext += format_resultrow(results[i], file_basename(filename), i);
-            }
-        }
-
-        //TODO: include manually corrected classes / detectors can be trained on different classes etc.
-        if(!!csvtext){
-            csvtext = "Filename," + global.KNOWN_POLLENSPECIES.join(',') + ",Other,Final;\n" + csvtext;
-            downloadText(`detected_pollen_${group}.csv`, csvtext)
-        }
-        await sleep(250);
-    }
-    return;
 }
 
 
+
+
+//TODO: labelme json download
 
 const labelme_template = {
     //version: "3.16.2",
