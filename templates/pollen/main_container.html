@@ -19,7 +19,7 @@
         app, 
         detection_tab = base_detection_tab(
             app, 
-            main_table              = base_main_table(extra_columns=['Detected Pollen']),
+            main_table              = base_main_table(app, sortable=True, extra_columns=['Detected Pollen']),
             filetable_download_menu = download_menu(app)
         ),
         training_tab  = pollen_training_tab(app))
