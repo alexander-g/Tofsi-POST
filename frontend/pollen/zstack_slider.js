@@ -4,26 +4,32 @@ ZStackSlider = class {
     //set up z-stack layer selection slider
     static setup_slider(filename){
         const $root   = $(`[filename="${filename}"]`);
+        
+        $root.find('img.input-image').one('load', async () =>{
+            //show and resize the layer selection slider
+            const file    = GLOBAL.files[filename]
+            const n_pages = (await load_tiff_pages(file))[0].length   //XXX: not ideal: file is read twice
+            const $slider = $root.find('.ui.slider');
+            $slider.slider({
+                min: 0,
+                max: n_pages-1,
+                onChange: _ => this.on_slider_change($slider)
+            });
 
-        //show and resize the layer selection slider
-        const $slider = $root.find('.ui.slider');
-        $slider.slider({
-            min:0, max:5, 
-            onChange: _ => this.on_slider_change($slider)
-        });
-
-        //a popup to display the current layer
-        $slider.popup({
-            position: 'left center',
-            content:  'Fused Layers',
-            hoverable: true,
-            closable:  false,
-            target:    $slider.find('.thumb'),
-        });
-        //cosmetic changes
-        $slider.find('.track-fill').remove();
-        //change event listener
-        $slider.on("wheel", this.on_mousewheel);
+            //a popup to display the current layer
+            /*$slider.popup({
+                position: 'left center',
+                content:  'Fused Layers',
+                hoverable: true,
+                closable:  false,
+                target:    $slider.find('.thumb'),
+            });*/
+            //cosmetic changes
+            $slider.find('.track-fill').remove();
+            //change event listener
+            //$slider.on("wheel", this.on_mousewheel);
+            $root.find('.view-menu, .view-menu-button').on("wheel", this.on_mousewheel);
+        }) 
     }
 
     static on_mousewheel(ev){
@@ -37,6 +43,7 @@ ZStackSlider = class {
 
         //update popup position
         //$slider.popup('reposition');
+        return false;
     }
 
     static async on_slider_change($slider){
@@ -47,13 +54,16 @@ ZStackSlider = class {
         const $img       = $container.find('img.input-image')
 
         const file       = GLOBAL.files[filename]
-        const blob       = await load_tiff_file(file, level-1)
+        const blob       = await load_tiff_file(file, level)
         set_image_src($img, blob)
 
-        const popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
-        $slider.popup('change content', popup_text);
-        $slider.popup('reposition');
-        
+        //const header_text = 'Z-Stack Layer: ' + ((level==0)? 'Fused' : `${level}`);
+        const header_text = `Z-Stack Layer: ${level+1}`;
+        $container.find('.zstack-header').text(header_text)
+
+        //const popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
+        //$slider.popup('change content', popup_text);
+        //$slider.popup('reposition');
     }
 }
 
