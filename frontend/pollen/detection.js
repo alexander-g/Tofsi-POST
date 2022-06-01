@@ -7,13 +7,13 @@ PollenDetection = class extends BaseDetection {
         this.hide_dimmer(filename)
 
         GLOBAL.files[filename].results = undefined;
-        App.Boxes.clear_box_overlays(filename)
+        GLOBAL.App.Boxes.clear_box_overlays(filename)
         
         if(!clear){
             console.log(`Setting results for ${filename}:`, results)
             const pollenresults            = new PollenResults(results['labels'], results['boxes'])
             GLOBAL.files[filename].results = pollenresults
-            App.Boxes.refresh_boxes(filename)
+            GLOBAL.App.Boxes.refresh_boxes(filename)
             
             $(`.table-row[filename="${filename}"] td:nth-of-type(2)`).html( this.format_results_for_table(pollenresults) )
         }

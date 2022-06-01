@@ -25,7 +25,7 @@ PollenFileInput = class extends BaseFileInput{
                     results.boxes.push( data.shapes[i].points.flat() )
                 }
                 
-                App.Detection.set_results(filename, results)
+                GLOBAL.App.Detection.set_results(filename, results)
                 resolve()
             };
             const resultfile = resultfiles[0]

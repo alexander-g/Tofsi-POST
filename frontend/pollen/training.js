@@ -1,4 +1,5 @@
-
+//TODO: hardcoded
+const KNOWN_POLLENSPECIES = ['Alnus', 'Betula', 'Carpinus', 'Corylus', 'Lycopodium', 'Fagus', 'Pinus', 'Pinus Halbe', 'Secale', 'Quercus', 'Wildgras']
 
 PollenTraining = class extends BaseTraining {
     //override
@@ -11,29 +12,48 @@ PollenTraining = class extends BaseTraining {
 
         $('table#detector-classes').toggle(train_det)
         $('table#classifier-classes').toggle(train_cls)
-        this.on_show_class_selection()
+
+        const callback = (_ => this.refresh_class_selection())
+        $('#classes-of-interest-dropdown').dropdown({onChange: callback})
+        $('#other-classes-dropdown').dropdown(      {onChange: callback})
+        $('#unknown-classes-dropdown').dropdown(    {onChange: callback})
+        this.refresh_class_selection()
     }
 
-    //dummy override: all selected
+    //dummy override: all files selected
     static get_selected_files(){
         return Object.keys(GLOBAL.files)
     }
 
-    static collect_selected_classes(){
+    static collect_class_counts(){
         const filenames = this.get_selected_files()
-        const labels    = filenames.map( f => GLOBAL.files[f].results.labels ).flat()
-        const uniques   = [...(new Set(labels))].sort()
+        const labels    = filenames
+                          .map( f => GLOBAL.files[f].results.labels )
+                          .flat()
+                          .map( l => l.trim() || 'Nonpollen' )
+        let   label_set = new Set(labels)
+        const known_classes = GLOBAL.App.Settings.get_properties_of_active_model()?.['known_classes'] ?? []
+        known_classes.map(c => label_set.add(c))
+        const uniques   = [...(label_set)].sort()
         const counts    = uniques.map( l => labels.filter( x => x==l ).length )
         return [uniques, counts]
     }
 
-    static refresh_classifier_classes_table(){
-        const [classes, counts]  = this.collect_selected_classes()
-
-        //TODO: code re-use
+    static get_class_selection(){
+        const all_classes  = this.collect_class_counts()[0]
         const coi_selected = $('#classes-of-interest-dropdown').dropdown('get value').split(',')
         const oth_selected = $('#other-classes-dropdown').dropdown('get value').split(',')
         const unk_selected = $('#unknown-classes-dropdown').dropdown('get value').split(',')
+        const any_selected = [...coi_selected, ...oth_selected, ...unk_selected]
+        const rejected     = all_classes.filter( s => !any_selected.includes(s.toLowerCase()) )
+
+        return [coi_selected, oth_selected, unk_selected, rejected]
+    }
+
+    static refresh_class_count_table(){
+        const [classes, counts]  = this.collect_class_counts()
+
+        const [coi_selected, oth_selected, unk_selected, _rejected] = this.get_class_selection()
         const coi_ixs      = Object.keys(classes).filter( i => coi_selected.includes(classes[i].toLowerCase()) )
         const oth_ixs      = Object.keys(classes).filter( i => oth_selected.includes(classes[i].toLowerCase()) )
         const unk_ixs      = Object.keys(classes).filter( i => unk_selected.includes(classes[i].toLowerCase()) )
@@ -41,7 +61,7 @@ PollenTraining = class extends BaseTraining {
         const $table       = $('table#classifier-classes tbody')
         $table.html('')
         for(const i of coi_ixs){
-            console.log(classes[i], counts[i])
+            //console.log(classes[i], counts[i])
             $(`<tr>
                 <td>${classes[i]}</td>
                 <td>${counts[i] }</td>
@@ -60,26 +80,9 @@ PollenTraining = class extends BaseTraining {
         $('#detector-negative-classes-count').text(rej_count)
     }
 
-    static on_show_class_selection() {
-        const $modal   = $('#class-selection-modal')
-        
-        const callback = (_ => this.refresh_class_selection())
-        $('#classes-of-interest-dropdown').dropdown({onChange:  callback})
-        $('#other-classes-dropdown').dropdown({onChange: callback })
-        $('#unknown-classes-dropdown').dropdown({onChange: callback })
-        this.refresh_class_selection()
-
-        $modal.modal('show')
-    }
 
     static refresh_class_selection() {
-        const classes = this.collect_selected_classes()[0]         //TODO: + species known to model but not in selected files  + not selected
-
-        const coi_selected = $('#classes-of-interest-dropdown').dropdown('get value').split(',')
-        const oth_selected = $('#other-classes-dropdown').dropdown('get value').split(',')
-        const unk_selected = $('#unknown-classes-dropdown').dropdown('get value').split(',')
-        const any_selected = [...coi_selected, ...oth_selected, ...unk_selected]
-        const rejected     = classes.filter( s => !any_selected.includes(s.toLowerCase()) )
+        const [coi_selected, oth_selected, unk_selected, rejected] = this.get_class_selection()
         
         const $coi_list     = $('#classes-of-interest-list')
         $coi_list.html('')
@@ -98,24 +101,16 @@ PollenTraining = class extends BaseTraining {
         $rejectedlist.html('')
         rejected.map( s => $(`<div class="ui label">${s}</div>`).appendTo($rejectedlist) )
 
-        this.refresh_classifier_classes_table()
+        this.refresh_class_count_table()
     }
 
-/*
+
     //override
     static upload_training_data(filenames){
         //TODO: show progress
-        const model_type      = $('#training-model-type').dropdown('get value');
-        //refactor
-        const attrname        = {cells:'cell_results', treerings:'treering_results'}[model_type]
         const files           = filenames.map( k => GLOBAL.files[k] )
         const targetfiles     = files.map(
-            f => {
-                let targetf = f[attrname][model_type=='cells'? 'cells' : 'segmentation']  //FIXME: ugly
-                //standardize file name
-                    targetf = rename_file(targetf, `${f.name}.${model_type}.png`)
-                return targetf;
-            }
+            f => GLOBAL.App.Download.build_annotation_jsonfile(f.name, f.results)
         )
 
         const promises = files.concat(targetfiles).map( f => upload_file_to_flask(f) )
@@ -124,18 +119,17 @@ PollenTraining = class extends BaseTraining {
 
     //override
     static get_training_options(){
-        const training_type      = $('#training-model-type').dropdown('get value');
-        return {training_type: training_type};
+        const [coi_selected, oth_selected, unk_selected, rejected] = this.get_class_selection()
+
+        return {
+            classes_of_interest : coi_selected,
+            classes_other       : oth_selected,
+            classes_unknown     : unk_selected,
+            classes_nonpollen   : rejected,
+            train_detector      : $('#train-detector-checkbox').checkbox('is checked'),
+            train_classifier    : $('#train-classifier-checkbox').checkbox('is checked'),
+        };
     }
 
-    //override
-    static update_model_info(){
-        const model_type  = $('#training-model-type').dropdown('get value');
-        if(!model_type)
-            return;
-        
-        super.update_model_info(model_type)
-    }
-*/
 }
 

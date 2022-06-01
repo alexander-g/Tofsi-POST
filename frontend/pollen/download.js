@@ -35,25 +35,32 @@ PollenDownload = class extends BaseDownload {
         for(const [filename, f] of Object.entries(GLOBAL.files)){
             if(!f.results)
                 continue;
-    
-            let jsondata = deepcopy(LABELME_TEMPLATE);
-            jsondata.imagePath = filename
-    
-            for(const [i,box] of Object.entries(f.results.boxes)){
-                const label      = f.results.labels[i];
-                if(label.trim()=="")
-                    continue;
-                let jsonshape    = deepcopy(LABELME_SHAPE_TEMPLATE);
-                jsonshape.label  = label;
-                jsonshape.points = [ [box[0], box[1]], [box[2], box[3]] ];
-                jsondata.shapes.push(jsonshape);
-            }
-    
-            const jsonfilename = filename.split('.').slice(0, -1).join('.')+'.json'
-            zipdata[jsonfilename] = new Blob([JSON.stringify(jsondata, null, 2)], {type : 'application/json'})
+
+            const jsonfile         = this.build_annotation_jsonfile(filename, f.results)
+            zipdata[jsonfile.name] = jsonfile
         }
         if(Object.keys(zipdata).length > 0)
             download_zip('annotations.zip', zipdata)
+    }
+
+    static build_annotation_jsonfile(filename, results){
+        let jsondata = deepcopy(LABELME_TEMPLATE);
+        jsondata.imagePath = filename
+
+        for(const [i,box] of Object.entries(results.boxes)){
+            const label      = results.labels[i].trim() || "Nonpollen";
+            //if(label.trim()=="")
+            //    continue;
+            let jsonshape    = deepcopy(LABELME_SHAPE_TEMPLATE);
+            jsonshape.label  = label;
+            jsonshape.points = [ [box[0], box[1]], [box[2], box[3]] ];
+            jsondata.shapes.push(jsonshape);
+        }
+
+        const jsonfilename = filename.split('.').slice(0, -1).join('.')+'.json'
+        const blob         = new Blob([JSON.stringify(jsondata, null, 2)], {type : 'application/json'})
+        const jsonfile     = new File([blob], jsonfilename)
+        return jsonfile
     }
 
     static csv_data_for_file(filename, include_header=true){

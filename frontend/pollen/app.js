@@ -9,8 +9,7 @@ PollenApp = class extends BaseApp {
 
 
 //override
-App = PollenApp;
-
+GLOBAL.App = PollenApp
 
 
 PollenResults = class {
