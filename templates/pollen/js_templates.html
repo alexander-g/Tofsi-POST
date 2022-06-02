@@ -21,13 +21,14 @@
             callback_on_process        = app+".Detection.on_process_image",
             callback_apply_corrections = None,
             callback_new_box           = app+".Boxes.on_draw_new_box_button",
-            callback_download          = app+".Download.on_single_item_download_click",
+            callback_download          = None,
             edit_segmentation_item     = None,
             view_menu_kwargs           = {
                 'show_results_layout': False,
                 'brightness_max':      None,
                 'extras':              zstack_slider()
-            }
+            },
+            help_popup                 = None,
     ) | indent }}
 
     <div class="image-container">
