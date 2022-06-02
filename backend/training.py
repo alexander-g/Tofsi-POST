@@ -15,17 +15,32 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
         #indicate that the current model is unsaved
         settings.active_models['detection'] = ''
         
+        train_both = training_options.get('train_detector') and training_options.get('train_classifier')
         ok = True
         if training_options.get('train_detector'):
+            cb = create_training_progress_callback(
+                desc   = 'Training detector...', 
+                scale  = 0.5 if train_both else 1.0, 
+                offset = 0.0,
+            )
+            cb(0.0) #set to zero at the beginning
+
             ok = model.start_training_detector(
                 imagefiles, 
                 targetfiles, 
                 classes_nonpollen = training_options.get('classes_nonpollen', []),
                 classes_ignore    = [],
                 num_workers       = 0, 
-                callback          = training_progress_callback,
+                #callback          = training_progress_callback,
+                callback          = cb,
             )
         if training_options['train_classifier'] and ok:
+            cb = create_training_progress_callback(
+                desc   = 'Training classifier...', 
+                scale  = 0.5 if train_both else 1.0, 
+                offset = 0.5 if train_both else 0.0,
+            )
+
             ok = model.start_training_classifier(
                 imagefiles, 
                 targetfiles, 
@@ -34,12 +49,15 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
                 classes_lowconf     = training_options.get('classes_unknown', []),
                 classes_ignore      = [],
                 num_workers         = 0, 
-                callback            = training_progress_callback,
+                #callback            = training_progress_callback,
+                callback            = cb,
             )
         return 'OK' if ok else 'INTERRUPTED'
 
-def training_progress_callback(x):
-    pubsub.PubSub.publish({'progress':x,  'description':'Training...'}, event='training')
+def create_training_progress_callback(desc, scale=1, offset=0):
+    def callback(x):
+        pubsub.PubSub.publish({'progress':x*scale + offset,  'description':desc}, event='training')
+    return callback
 
 def find_targetfiles(inputfiles):
     def find_targetfile(imgf):

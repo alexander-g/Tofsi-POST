@@ -37,8 +37,6 @@ class App(BaseApp):
             train_detector      = requestform['options[train_detector]']   == ['true'],
             train_classifier    = requestform['options[train_classifier]'] == ['true'],
         )
-        print(requestform)
-        print(options)
         
         imagefiles   = requestform['filenames[]']
         imagefiles   = [os.path.join(self.cache_path, f) for f in imagefiles]
