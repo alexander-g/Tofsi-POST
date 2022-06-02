@@ -10,6 +10,14 @@ import numpy as np
 class App(BaseApp):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
+
+        @self.route('/fused_image/<path:path>')
+        def fused_image(path):
+            full_path = os.path.join(self.cache_path, path)
+            if not os.path.exists(full_path):
+                flask.abort(404)
+            output_path = backend.processing.fuse_zstack_image(full_path, self.settings)
+            return os.path.basename(output_path)
     
     #override
     def process_image(self, imagename):

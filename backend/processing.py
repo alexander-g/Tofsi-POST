@@ -28,32 +28,12 @@ def process_image(imagepath, settings):
     result['boxes_absolute'] = result['boxes_relative'] * (W,H,W,H)
     return result
 
-def write_as_jpeg(path,x):
-    if len(x.shape)==2:
-        x = x[...,np.newaxis]
-    elif len(x.shape)==4:
-        x = detector.resize_image_for_detection(x)
-    x = (x*255).astype(np.uint8)
-    x = PIL.Image.fromarray(x).convert('RGB')
-    x.save(path)
-
-def write_layers_as_jpeg(basepath, x):
-    assert np.ndim(x)==4, 'Image is not a z-stack'
-
-    H,W   = x.shape[1:3]
-    ratio = H/W
-    stack = np.stack([
-        PIL.Image.fromarray(im).resize([420,int(420*ratio)], PIL.Image.BILINEAR) for im in x
-    ])
-    fused = detector.fuse_image_stack(stack)
-    fused = skimgutil.img_as_float32(fused)
-    fused = PIL.Image.fromarray((fused*255).astype(np.uint8)).convert('RGB')
-    fused.save(basepath+'.jpg')
-
-    for i,layer in enumerate(x):
-        if layer.dtype!=np.uint8:
-            layer = (layer*255).astype(np.uint8)
-        layer = PIL.Image.fromarray(layer).convert('RGB').resize([1024,int(1024*ratio)])
-        layer.save(f'{basepath}.layer{i}.jpg')
-
+def fuse_zstack_image(path, settings):
+    detector = settings.models['detection']
+    zstack   = detector.load_image(path) / np.float32(255)
+    fused    = detector.fuse_image_stack(zstack)
+    fused_path = f'{path}.fused.jpg'
+    fused    = PIL.Image.fromarray((fused*255).astype(np.uint8)).convert('RGB')
+    fused.save(fused_path)
+    return fused_path
 

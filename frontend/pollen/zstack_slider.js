@@ -8,11 +8,12 @@ ZStackSlider = class {
         $root.find('img.input-image').one('load', async () =>{
             //show and resize the layer selection slider
             const file    = GLOBAL.files[filename]
-            const n_pages = (await load_tiff_pages(file))[0].length   //XXX: not ideal: file is read twice
+            const n_pages = (await GLOBAL.App.ImageLoading.load_tiff_pages(file))[0].length   //XXX: not ideal: file is read twice
             const $slider = $root.find('.ui.slider');
             $slider.slider({
-                min: 0,
-                max: n_pages-1,
+                min:      -1,
+                max:      n_pages-1,
+                start:    -1,
                 onChange: _ => this.on_slider_change($slider)
             });
 
@@ -47,23 +48,19 @@ ZStackSlider = class {
     }
 
     static async on_slider_change($slider){
-        const level      = $slider.slider('get value');
+        let   level      = $slider.slider('get value');
+              level      = (level==-1)? 'fused' : level;
 
         const $container = $slider.closest('[filename]');
         const filename   = $container.attr('filename');
         const $img       = $container.find('img.input-image')
 
         const file       = GLOBAL.files[filename]
-        const blob       = await load_tiff_file(file, level)
-        set_image_src($img, blob)
+        const blob       = await GLOBAL.App.ImageLoading.load_tiff_file(file, level)
+        GLOBAL.App.ImageLoading.set_image_src($img, blob)
 
-        //const header_text = 'Z-Stack Layer: ' + ((level==0)? 'Fused' : `${level}`);
-        const header_text = `Z-Stack Layer: ${level+1}`;
+        const header_text = `Z-Stack Layer: ${ (level=='fused')? 'Fused' : (level+1)}`;
         $container.find('.zstack-header').text(header_text)
-
-        //const popup_text = (level==0)? 'Fused Layers' : `Layer ${level}`;
-        //$slider.popup('change content', popup_text);
-        //$slider.popup('reposition');
     }
 }
 
