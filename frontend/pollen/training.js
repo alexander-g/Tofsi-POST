@@ -28,7 +28,8 @@ PollenTraining = class extends BaseTraining {
     static collect_class_counts(){
         const filenames = this.get_selected_files()
         const labels    = filenames
-                          .map( f => GLOBAL.files[f].results.labels )
+                          .map( f => GLOBAL.files[f].results?.labels )
+                          .filter(Boolean)
                           .flat()
                           .map( l => l.trim() || 'Nonpollen' )
         let   label_set = new Set(labels)
@@ -128,6 +129,8 @@ PollenTraining = class extends BaseTraining {
             classes_nonpollen   : rejected,
             train_detector      : $('#train-detector-checkbox').checkbox('is checked'),
             train_classifier    : $('#train-classifier-checkbox').checkbox('is checked'),
+            learning_rate       : Number($('#training-learning-rate')[0].value),
+            epochs              : Number($('#training-number-of-epochs')[0].value),
         };
     }
 

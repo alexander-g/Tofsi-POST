@@ -28,17 +28,9 @@ class App(BaseApp):
 
     #override
     def training(self):
-        requestform = dict(flask.request.form.lists())
-        options = dict(
-            classes_of_interest = requestform['options[classes_of_interest][]'],
-            classes_other       = requestform['options[classes_other][]'],
-            classes_unknown     = requestform['options[classes_unknown][]'],
-            classes_nonpollen   = requestform['options[classes_nonpollen][]'],
-            train_detector      = requestform['options[train_detector]']   == ['true'],
-            train_classifier    = requestform['options[train_classifier]'] == ['true'],
-        )
-        
-        imagefiles   = requestform['filenames[]']
+        requestform  = flask.request.get_json(force=True)
+        options      = requestform['options']
+        imagefiles   = requestform['filenames']
         imagefiles   = [os.path.join(self.cache_path, f) for f in imagefiles]
         targetfiles  = backend.training.find_targetfiles(imagefiles)
         if not all(targetfiles):

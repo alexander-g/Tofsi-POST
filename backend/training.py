@@ -8,6 +8,8 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
     if not locked:
         raise RuntimeError('Cannot start training. Already processing.')
 
+    print('Training options: ', training_options)
+
     with GLOBALS.processing_lock:
         GLOBALS.processing_lock.release()  #decrement recursion level bc acquired twice
     
@@ -31,8 +33,9 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
                 classes_nonpollen = training_options.get('classes_nonpollen', []),
                 classes_ignore    = [],
                 num_workers       = 0, 
-                #callback          = training_progress_callback,
                 callback          = cb,
+                epochs            = training_options.get('epochs', 10),
+                lr                = training_options.get('learning_rate', 10),
             )
         if training_options['train_classifier'] and ok:
             cb = create_training_progress_callback(
@@ -49,8 +52,9 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
                 classes_lowconf     = training_options.get('classes_unknown', []),
                 classes_ignore      = [],
                 num_workers         = 0, 
-                #callback            = training_progress_callback,
                 callback            = cb,
+                epochs            = training_options.get('epochs', 10),
+                lr                = training_options.get('learning_rate', 10),
             )
         return 'OK' if ok else 'INTERRUPTED'
 
