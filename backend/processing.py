@@ -17,8 +17,6 @@ import PIL
 
 from base.backend import GLOBALS
 
-def load_image(imagepath):
-    return PIL.Image.open(imagepath) / np.float32(255)
 
 def process_image(imagepath, settings):
     with GLOBALS.processing_lock:

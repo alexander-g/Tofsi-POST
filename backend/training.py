@@ -30,25 +30,25 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
             ok = model.start_training_detector(
                 imagefiles, 
                 targetfiles, 
-                classes_nonpollen = training_options.get('classes_nonpollen', []),
+                classes_nonpollen = training_options.get('classes_rejected', []),
                 classes_ignore    = [],
                 num_workers       = 0, 
                 callback          = cb,
                 epochs            = training_options.get('epochs', 10),
                 lr                = training_options.get('learning_rate', 10),
             )
+        
         if training_options['train_classifier'] and ok:
             cb = create_training_progress_callback(
                 desc   = 'Training classifier...', 
                 scale  = 0.5 if train_both else 1.0, 
                 offset = 0.5 if train_both else 0.0,
             )
-
             ok = model.start_training_classifier(
                 imagefiles, 
                 targetfiles, 
                 classes_of_interest = training_options.get('classes_of_interest', []),
-                classes_nonpollen   = training_options.get('classes_nonpollen', []),
+                classes_nonpollen   = training_options.get('classes_rejected', []),
                 classes_lowconf     = training_options.get('classes_unknown', []),
                 classes_ignore      = [],
                 num_workers         = 0, 

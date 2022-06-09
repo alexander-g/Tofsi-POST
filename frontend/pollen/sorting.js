@@ -7,7 +7,7 @@ PollenSorting = class extends BaseSorting {
             this.on_sort_by_confidence(event)
     }
 
-    //called when user clicks on "Flags" column head
+    //called when user clicks on "Detected Pollen" column head
     static on_sort_by_confidence(event){
         const $col      = $(event.target);
         const direction = $col.hasClass('ascending')? 'descending' : 'ascending';

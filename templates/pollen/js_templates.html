@@ -45,7 +45,7 @@
 
 
 {% macro filetable_row_template(app) %}
-    {{ base_js_templates.filetable_row_template(app, content=pollen_filetable_content, extra_columns=1) }}
+    {{ base_js_templates.filetable_row_template(app, content=pollen_filetable_content, extra_columns="<td></td>") }}
     {{ base_boxes.boxes_overlay_template(app) }}
 {% endmacro %}
 
