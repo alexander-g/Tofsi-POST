@@ -5,3 +5,4 @@ tests/images
 static
 models
 cache
+settings.json

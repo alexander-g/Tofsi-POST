@@ -1,0 +1,36 @@
+{
+ "flags": {},
+ "shapes": [
+  {
+   "label": "Quercus",
+   "line_color": null,
+   "fill_color": null,
+   "points": [
+    [
+     155.2,
+     732.08
+    ],
+    [
+     289.44,
+     859.04
+    ]
+   ],
+   "shape_type": "rectangle",
+   "flags": {}
+  }
+ ],
+ "lineColor": [
+  0,
+  255,
+  0,
+  128
+ ],
+ "fillColor": [
+  255,
+  0,
+  0,
+  128
+ ],
+ "imagePath": "TAN 940 1 /img_12.tiff",
+ "imageData": null
+}

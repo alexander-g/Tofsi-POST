@@ -1,0 +1,36 @@
+{
+ "flags": {},
+ "shapes": [
+  {
+   "label": "Nonpollen",
+   "line_color": null,
+   "fill_color": null,
+   "points": [
+    [
+     444.5,
+     432.89
+    ],
+    [
+     591.18,
+     524.9
+    ]
+   ],
+   "shape_type": "rectangle",
+   "flags": {}
+  }
+ ],
+ "lineColor": [
+  0,
+  255,
+  0,
+  128
+ ],
+ "fillColor": [
+  255,
+  0,
+  0,
+  128
+ ],
+ "imagePath": "TAN 940 1 /img_21.tiff",
+ "imageData": null
+}

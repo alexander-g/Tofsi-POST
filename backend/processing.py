@@ -1,20 +1,4 @@
-import os
-#restrict gpu usage
-os.environ["CUDA_VISIBLE_DEVICES"]=""
-
-import glob, pickle
-import cloudpickle
-import numpy as np
-import itertools
-
-import torch, torchvision, onnxruntime
-print(f'PyTorch version:     {torch.__version__}')
-print(f'Torchvision version: {torchvision.__version__}')
-print(f'ONNXruntime version: {onnxruntime.__version__}')
-
-import skimage.util       as skimgutil
 import PIL
-
 from base.backend import GLOBALS
 
 
