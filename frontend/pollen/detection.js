@@ -28,12 +28,12 @@ PollenDetection = class extends BaseDetection {
         for (let i = 0; i < n; i++) {
             let   label      = pollenresults.labels[i];
             const confidence = Object.values(pollenresults.predictions[i])[0]
-            if(!label || (label.toLowerCase()=='nonpollen')){
+            if(!label || (label.toLowerCase()==GLOBAL.App.NEGATIVE_CLASS.toLowerCase())){
                 if(confidence > hiconf_threshold)
                     //filter high-confidence non-pollen
                     continue;
                 else
-                    label = 'Nonpollen'
+                    label = GLOBAL.App.NEGATIVE_CLASS
             }
             
             let   text       = `${label}(${(confidence*100).toFixed(0)}%)`

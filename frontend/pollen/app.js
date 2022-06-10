@@ -7,6 +7,8 @@ PollenApp = class extends BaseApp {
     static Training      =    PollenTraining;
     static Sorting       =    PollenSorting;
     static ImageLoading  =    PollenImageLoading;
+
+    static NEGATIVE_CLASS = 'Nonpollen'
 }
 
 

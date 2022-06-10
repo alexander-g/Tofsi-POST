@@ -29,10 +29,6 @@ PollenDownload = class extends ObjectDetectionDownload {
             download_text('statistics.csv', csv)
     }
 
-    //override
-    static build_annotation_jsonfile(filename, results){
-        return super.build_annotation_jsonfile(filename, results, "Nonpollen")
-    }
 
 
     static csv_data_for_file(filename, include_header=true){
@@ -81,7 +77,7 @@ PollenDownload = class extends ObjectDetectionDownload {
             const confidence_str = (confidence? (confidence*100).toFixed(0)+'%' : "")
             row.push( confidence_str.padStart(4) );
         }
-        selectedlabel = selectedlabel? selectedlabel : "Nonpollen";
+        selectedlabel = selectedlabel? selectedlabel : GLOBAL.App.NEGATIVE_CLASS;
         row.push(selectedlabel)
         return row;
     }

@@ -6,10 +6,5 @@ PollenTraining = class extends ObjectDetectionTraining {
     static get_selected_files(){
         return Object.keys(GLOBAL.files)
     }
-
-    static collect_class_counts(){
-        return super.collect_class_counts('Nonpollen')
-    }
-
 }
 

@@ -1,8 +1,6 @@
 
 
 PollenBoxes = class extends BaseBoxes {
-    //override
-    static NEGATIVE_CLASS_NAME = 'Nonpollen'
 
     //override
     static get_set_of_all_labels() {
@@ -12,7 +10,7 @@ PollenBoxes = class extends BaseBoxes {
         }
         let uniques = new Set(all_labels)
             uniques.delete('')
-            uniques.delete(this.NEGATIVE_CLASS_NAME)
-        return [this.NEGATIVE_CLASS_NAME].concat([...uniques].sort())
+            uniques.delete(GLOBAL.App.NEGATIVE_CLASS)
+        return [GLOBAL.App.NEGATIVE_CLASS].concat([...uniques].sort())
     }
 }
