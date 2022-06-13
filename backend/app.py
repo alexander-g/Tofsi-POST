@@ -27,8 +27,8 @@ class App(BaseApp):
         
         result = backend.processing.process_image(full_path, self.settings)
         return flask.jsonify({
-            'labels':    result['labeled_probabilities'],
-            'boxes':     np.array(result['boxes_absolute']).tolist(),
+            'labels':    result['per_class_scores'],
+            'boxes':     np.array(result['boxes']).tolist(),
         })
 
 

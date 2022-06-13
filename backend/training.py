@@ -35,7 +35,7 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
                 num_workers       = 0, 
                 callback          = cb,
                 epochs            = training_options.get('epochs', 10),
-                lr                = training_options.get('learning_rate', 10),
+                lr                = training_options.get('learning_rate', 0.0001),
             )
         
         if training_options['train_classifier'] and ok:
@@ -54,7 +54,7 @@ def start_training(imagefiles, targetfiles, training_options:dict, settings):
                 num_workers         = 0, 
                 callback            = cb,
                 epochs            = training_options.get('epochs', 10),
-                lr                = training_options.get('learning_rate', 10),
+                lr                = training_options.get('learning_rate', 0.0001),
             )
         return 'OK' if ok else 'INTERRUPTED'
 

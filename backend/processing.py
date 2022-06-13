@@ -1,4 +1,4 @@
-import PIL
+import PIL, numpy as np
 from base.backend import GLOBALS
 
 
@@ -6,8 +6,6 @@ def process_image(imagepath, settings):
     with GLOBALS.processing_lock:
         detector = settings.models['detection']
         result   = detector.process_image(imagepath)
-    W,H                      = PIL.Image.open(imagepath).size
-    result['boxes_absolute'] = result['boxes_relative'] * (W,H,W,H)
     return result
 
 def fuse_zstack_image(path, settings):

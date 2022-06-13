@@ -23,14 +23,12 @@ class PollenMockModel(torch.nn.Module):
         y0,x0,y1,x1 = (self.weights * (image.shape[:2]+image.shape[:2])).astype(int)
         print(y0,x0,y1,x1)
 
-        #TODO: unify
         result = {
-            'logits':                np.zeros([1,1000], dtype='float32'), 
-            'probabilities':         np.zeros([1,len(self.class_list)], dtype='float32'), 
-            'labels':                [self.class_list[1]], 
-            'scores':                np.array([], dtype='float32'),
-            'labeled_probabilities': [ dict(zip( self.class_list, p )) for p in [[0.2, 0.65, 0.15]] ],
-            'boxes_relative':        np.array([self.weights]),
+            'boxes'            : np.array([[x0,y0,x1,y1]]),
+            'box_scores'       : np.array([0.65]),
+            'cls_scores'       : np.array([0.65]),
+            'per_class_scores' : [ dict(zip( self.class_list, p )) for p in [[0.2, 0.65, 0.15]] ],
+            'labels'           : [self.class_list[1]],
         }
 
         print(f'Simulating image processing')
