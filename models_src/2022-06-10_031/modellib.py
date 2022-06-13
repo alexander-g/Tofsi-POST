@@ -4,8 +4,8 @@ import scipy.ndimage
 import torch, torchvision
 import PIL.Image
 import skimage.io, skimage.util
-import cloudpickle
-import onnxruntime
+#import cloudpickle
+#import onnxruntime
 
 #internal modules
 MODULES = ['training', 'datasets']
@@ -214,9 +214,10 @@ class BaseModel(torch.nn.Module):
         return self.basemodule(*args,**kwargs)
     
     def init_onnx(self, re_export=False):
-        if getattr(self,'_onnx_bytes',None) is None or re_export:
-            self._onnx_bytes = to_onnx(self.eval(), self.__class__.__name__.lower())
-        self._onnx_session = onnxruntime.InferenceSession(self._onnx_bytes)
+        return
+        #if getattr(self,'_onnx_bytes',None) is None or re_export:
+        #    self._onnx_bytes = to_onnx(self.eval(), self.__class__.__name__.lower())
+        #self._onnx_session = onnxruntime.InferenceSession(self._onnx_bytes)
     
     def __getstate__(self):
         d = dict(self.__dict__)
