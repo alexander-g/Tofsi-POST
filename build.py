@@ -37,9 +37,6 @@ shutil.rmtree('./build')
 #shutil.copyfile('settings.json', build_dir+'/settings.json')
 os.remove('./main.spec')
 
-#hiddenimport doesnt work; copying the whole folder
-import torchvision
-shutil.copytree(os.path.dirname(torchvision.__file__), build_dir+'/main/torchvision')
 
 if args.zip:
     shutil.rmtree(build_dir+'/cache', ignore_errors=True)
