@@ -5,7 +5,10 @@ Named after [Tofsy von Post](https://link.springer.com/article/10.1007/s00334-01
 
 ***
 
+Download: [Windows Binaries](https://github.com/alexander-g/Tofsi-POST/releases/download/v2022-12-23/2022-12-23_15h08m25s_PollenDetector.zip)
+
 Screenshot:
 
 <img src="images/screenshot.jpg" width="1000">
+
 
